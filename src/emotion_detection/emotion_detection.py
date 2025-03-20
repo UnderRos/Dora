@@ -1,5 +1,4 @@
 # 이 코드는 컴퓨터가 사람 얼굴 표정을 인식하도록 학습시키고, 웹캠 화면에 실시간으로 표정을 표시합니다.
-
 import os
 import cv2
 import numpy as np
@@ -158,6 +157,11 @@ class EmotionRecognizer:
                     h, w, _ = frame.shape
                     x, y, w_box, h_box = (int(bbox.xmin*w), int(bbox.ymin*h),
                                           int(bbox.width*w), int(bbox.height*h))
+                    
+                    face_region = frame[y:y+h_box, x:x+w_box]
+                    if face_region.size == 0:
+                        continue  # 얼굴 영역이 비었으면 넘어감
+                    face = cv2.cvtColor(face_region, cv2.COLOR_BGR2GRAY)
 
                     face = cv2.cvtColor(frame[y:y+h_box, x:x+w_box], cv2.COLOR_BGR2GRAY)
                     face = cv2.resize(face, (48,48)) / 255.0
@@ -179,30 +183,35 @@ class EmotionRecognizer:
         cv2.destroyAllWindows()
 
 if __name__ == '__main__':
-    emotions = ["angry","disgust","fear","happy","neutral","sad","surprise"]
+    emotions = ["angry", "disgust", "fear", "happy", "neutral", "sad", "surprise"]
 
     # 1) 데이터 불러오기
     dl = DataLoader(emotions)
-    X_train, X_test, y_train, y_test = dl.load('data/archive/train','data/archive/test')
+    X_train, X_test, y_train, y_test = dl.load('data/archive/train', 'data/archive/test')
+    print("데이터 로딩 완료:", X_train.shape)
 
-    # 2) Hyperband로 최적 Teacher 모델 학습
+    # 2) Hyperband를 사용하여 최적의 Teacher 모델 학습
     tuner = HyperbandTuner()
     teacher, best_hp = tuner.search(X_train, y_train, X_test, y_test)
-    print('최적 하이퍼파라미터:', best_hp.values)
+    print("최적 하이퍼파라미터:", best_hp.values)
 
-    # 3) 작은 Student 모델 생성 → Knowledge Distillation
+    # 3) 작은 Student 모델 생성 및 Knowledge Distillation 적용
     student = Sequential([
-        Conv2D(32,(3,3), activation='relu', input_shape=(48,48,1)),
+        Conv2D(32, (3, 3), activation='relu', input_shape=(48, 48, 1)),
         MaxPooling2D(),
         Flatten(),
         Dense(64, activation='relu'),
         Dense(len(emotions), activation='softmax')
     ])
     student = Distiller(teacher, student).distill(X_train, y_train, X_test, y_test)
+    print("Knowledge Distillation 완료.")
 
-    # 4) TFLite 파일로 저장
+    # 4) TFLite 파일로 모델 저장 (모바일/임베디드 배포용)
     Exporter.to_tflite(student, 'emotion_student_quant.tflite')
 
     # 5) 실시간 감정 인식 실행
     app = EmotionRecognizer(student, emotions)
+    print("실시간 감정 인식 실행 중. 종료하려면 'q'를 누르세요.")
     app.recognize()
+
+    
