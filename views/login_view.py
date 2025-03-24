@@ -1,11 +1,12 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLineEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLineEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy, QMessageBox
 from PyQt5.QtCore import Qt
 from components.signup_dialog import SignUpDialog
 from controller import handle_login_request
 
 class LoginView(QWidget):
-    def __init__(self):
+    def __init__(self, tab_widget=None):
         super().__init__()
+        self.tab_widget = tab_widget
         self.setStyleSheet(self.load_styles())
         self.init_ui()
 
@@ -55,7 +56,16 @@ class LoginView(QWidget):
         email = self.id_input.text().strip()
         password = self.pw_input.text().strip()
         if email and password:
-            handle_login_request(email, password)
+            response = handle_login_request(email, password)
+            if response.get("result") == "success":
+                QMessageBox.information(self, "로그인 성공", "로그인에 성공했습니다.")
+                if self.tab_widget:
+                    parent_widget = self.tab_widget.parent()
+                    if hasattr(parent_widget, 'unlock_tabs'):
+                        parent_widget.unlock_tabs()
+                    self.tab_widget.setCurrentIndex(3)  # 예: 채팅 탭 (index 3)
+            else:
+                QMessageBox.warning(self, "로그인 실패", response.get("reason", "로그인에 실패했습니다."))
 
     def show_signup_dialog(self):
         dialog = SignUpDialog()

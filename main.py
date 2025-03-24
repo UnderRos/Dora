@@ -1,7 +1,9 @@
 import sys
 import threading
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget
+from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QLabel
+from PyQt5.QtCore import Qt
 from views.login_view import LoginView
+from views.chat_panel import ChatPanel
 from network.tcp_server import start_server
 
 class DoraGUI(QWidget):
@@ -10,15 +12,31 @@ class DoraGUI(QWidget):
         self.setWindowTitle("Emotion AI GUI")
         self.setGeometry(100, 100, 700, 600)
         self.setStyleSheet(self.load_styles())
-        self.init_ui()
+        self.user_id = None
+        self.user_name = None
+        self.layout = QVBoxLayout()
+        self.setLayout(self.layout)
+        self.show_login_view()
 
-    def init_ui(self):
-        layout = QVBoxLayout()
+    def show_login_view(self):
+        self.login_view = LoginView(login_callback=self.on_login_success)
+        self.layout.addWidget(self.login_view)
+
+    def show_main_tabs(self):
         self.tabs = QTabWidget()
-        self.tabs.addTab(LoginView(), "로그인")
-        # self.tabs.addTab(...) # 다른 탭들도 여기에 추가 예정
-        layout.addWidget(self.tabs)
-        self.setLayout(layout)
+        self.tabs.addTab(QLabel("건강 상태 탭 (미구현)"), "건강 상태")
+        self.tabs.addTab(QLabel("DORA 상태 탭 (미구현)"), "DORA 상태")
+        self.tabs.addTab(ChatPanel(user_id=self.user_id, user_name=self.user_name), "채팅")
+        self.tabs.addTab(QLabel("설정 탭 (미구현)"), "설정")
+        self.layout.addWidget(self.tabs)
+        self.tabs.setCurrentIndex(2)
+
+    def on_login_success(self, user_id, user_name):
+        self.user_id = user_id
+        self.user_name = user_name
+        self.layout.removeWidget(self.login_view)
+        self.login_view.deleteLater()
+        self.show_main_tabs()
 
     def load_styles(self):
         return """
@@ -46,9 +64,7 @@ class DoraGUI(QWidget):
         """
 
 if __name__ == '__main__':
-    # TCP 서버 백그라운드로 실행
     threading.Thread(target=start_server, daemon=True).start()
-
     app = QApplication(sys.argv)
     window = DoraGUI()
     window.show()
