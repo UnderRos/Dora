@@ -1,5 +1,4 @@
 from PyQt5.QtWidgets import QDialog, QFormLayout, QLineEdit, QPushButton
-from PyQt5.QtCore import Qt
 from controller import handle_signup_request
 
 class SignUpDialog(QDialog):
