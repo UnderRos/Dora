@@ -1,8 +1,7 @@
-# db/models.py
-
-# 각 테이블의 컬럼 구조 정의용 데이터 클래스
 from dataclasses import dataclass
 from typing import Optional
+
+# 각 테이블의 컬럼 구조 정의용 데이터 클래스
 
 @dataclass
 class User:
