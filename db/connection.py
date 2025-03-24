@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-from config.settings import DB_CONFIG
+from settings import DB_CONFIG
 
 class Database:
     def __init__(self):
@@ -10,7 +10,7 @@ class Database:
     def connect(self):
         try:
             self.conn = mysql.connector.connect(**DB_CONFIG)
-            self.cursor = self.conn.cursor(dictionary=True)
+            self.cursor = self.conn.cursor(dictionary=True, buffered=True)
             print("[DB] 연결 성공")
         except Error as e:
             print(f"[DB] 연결 실패: {e}")
@@ -40,3 +40,5 @@ class Database:
 
     def lastrowid(self):
         return self.cursor.lastrowid
+
+

@@ -1,5 +1,5 @@
-from db.models import *
-from db.query import *
+from models import *
+from query import *
 from datetime import datetime
 
 # 기본 사용자 생성
