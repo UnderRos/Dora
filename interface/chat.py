@@ -1,7 +1,8 @@
 from db.models import Chat
-from db.query import insert_chat
-from db.query import get_pet_emoticon  # 이모티콘 및 메시지 대응
+from db.query import insert_chat, get_pet_emoticon
 from datetime import datetime
+from common.logger import log_to_db
+from ai.llm.gpt_wrapper import generate_reply
 
 def handle_chat_message(payload: dict) -> dict:
     try:
@@ -21,11 +22,13 @@ def handle_chat_message(payload: dict) -> dict:
         if not (user_id and message):
             return {"result": "fail", "reason": "필수 정보 누락"}
 
-        # 기본 이모티콘 ID 임의 설정 (예: 5), 추후 감정 분석 결과 반영 가능
-        e_id = 5
+        e_id = 5  # 기본 감정 ID
         pet_emoticon = get_pet_emoticon(e_id)
         pet_emotion = pet_emoticon["emoticon"] if pet_emoticon else "기분 좋아요"
-        reply_message = pet_emoticon["text"] if pet_emoticon else "응원할게요!"
+
+        # GPT로 응답 생성
+        reply_message = generate_reply(message)
+        # reply_message = pet_emoticon["text"] if pet_emoticon else "응원할게요!"
 
         chat = Chat(
             chat_id=None,
@@ -48,6 +51,12 @@ def handle_chat_message(payload: dict) -> dict:
 
         chat_id = insert_chat(chat)
 
+        log_to_db(
+            user_id=user_id,
+            log_type="chat",
+            detail=f"[채팅] 메시지: {message} → 응답: {reply_message}"
+        )
+
         return {
             "result": "success",
             "chatId": chat_id,
@@ -58,3 +67,4 @@ def handle_chat_message(payload: dict) -> dict:
 
     except Exception as e:
         return {"result": "fail", "reason": str(e)}
+

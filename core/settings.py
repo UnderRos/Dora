@@ -12,3 +12,17 @@ DB_CONFIG = {
     'database': os.getenv('DB_NAME', 'dolbom_chatbot'),
     'charset': 'utf8mb4'
 }
+
+VIDEO_CONFIG = {
+    "save_dir": "media/video/",
+    "fps": 15,
+    "duration": 3
+}
+
+AUDIO_CONFIG = {
+    "save_dir": "media/voice/",
+    "sample_rate": 16000,
+    "channels": 1,
+    "chunk_size": 1024,
+    "duration": 3
+}

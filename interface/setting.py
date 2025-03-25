@@ -1,5 +1,6 @@
 from db.models import UserSetting
 from db.query import set_user_setting, get_user_setting
+from common.logger import log_to_db
 
 def handle_set_setting(payload: dict) -> dict:
     try:
@@ -17,9 +18,15 @@ def handle_set_setting(payload: dict) -> dict:
 
         set_user_setting(setting)
 
+        log_to_db(
+            user_id=user_id,
+            log_type="set_setting",
+            detail=f"폰트 크기 설정 변경: {font_size}"
+        )
+
         return {
             "result": "success",
-            "settingId": user_id,  # 실제 설정 ID를 따로 저장하지 않음
+            "settingId": user_id, 
             "fontSize": font_size
         }
 

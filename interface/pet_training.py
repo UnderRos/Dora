@@ -1,5 +1,6 @@
 from db.models import PetTrainingSetting
 from db.query import insert_training_setting
+from common.logger import log_to_db
 
 def handle_set_response(payload: dict) -> dict:
     try:
@@ -23,16 +24,22 @@ def handle_set_response(payload: dict) -> dict:
             recognized_gesture=recognized_gesture
         )
 
-        response_id = insert_training_setting(setting)
+        setting_id = insert_training_setting(setting)
+
+        log_to_db(
+            user_id=setting.user_id,
+            log_type="set_response",
+            detail=f"훈련 등록: '{setting.training_text}' → {setting.recognized_gesture}"
+        )
 
         return {
             "result": "success",
-            "responseSettingId": response_id,
-            "trainingText": training_text,
-            "keywordText": keyword_text,
-            "gestureVideoPath": gesture_video_path,
-            "gestureRecognitionId": gesture_recognition_id,
-            "recognizedGesture": recognized_gesture
+            "responseSettingId": setting_id,
+            "trainingText": setting.training_text,
+            "keywordText": setting.keyword_text,
+            "gestureVideoPath": setting.gesture_video_path,
+            "gestureRecognitionId": setting.gesture_recognition_id,
+            "recognizedGesture": setting.recognized_gesture
         }
 
     except Exception as e:
@@ -40,5 +47,5 @@ def handle_set_response(payload: dict) -> dict:
 
 
 def handle_get_response(payload: dict) -> dict:
-    # 명세서에 get_response 응답만 있고 요청 형식은 없음
-    return {"result": "fail", "reason": "get_response 미구현"}
+    # 현재 응답 정의 없음 (설정 조회 시 응답 형태 필요 시 구현)
+    return {"result": "fail", "reason": "미구현"}

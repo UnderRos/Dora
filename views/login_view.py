@@ -1,12 +1,12 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLineEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy, QMessageBox
 from PyQt5.QtCore import Qt
-from components.signup_dialog import SignUpDialog
-from controller import handle_login_request
+from views.components.signup_dialog import SignUpDialog
+from core.controller import handle_login_request
 
 class LoginView(QWidget):
-    def __init__(self, tab_widget=None):
+    def __init__(self, login_callback=None):
         super().__init__()
-        self.tab_widget = tab_widget
+        self.login_callback = login_callback
         self.setStyleSheet(self.load_styles())
         self.init_ui()
 
@@ -51,7 +51,7 @@ class LoginView(QWidget):
         layout.addStretch()
 
         self.setLayout(layout)
-
+        
     def handle_login(self):
         email = self.id_input.text().strip()
         password = self.pw_input.text().strip()
@@ -59,11 +59,8 @@ class LoginView(QWidget):
             response = handle_login_request(email, password)
             if response.get("result") == "success":
                 QMessageBox.information(self, "로그인 성공", "로그인에 성공했습니다.")
-                if self.tab_widget:
-                    parent_widget = self.tab_widget.parent()
-                    if hasattr(parent_widget, 'unlock_tabs'):
-                        parent_widget.unlock_tabs()
-                    self.tab_widget.setCurrentIndex(3)  # 예: 채팅 탭 (index 3)
+                if self.login_callback:
+                    self.login_callback(response["userId"], email)  # 또는 닉네임으로 교체 가능
             else:
                 QMessageBox.warning(self, "로그인 실패", response.get("reason", "로그인에 실패했습니다."))
 
@@ -72,42 +69,11 @@ class LoginView(QWidget):
         dialog.exec_()
 
     def load_styles(self):
-        return '''
-            QLabel {
-                font-size: 14px;
-                margin-bottom: 5px;
-            }
-            QLineEdit {
-                border: 1px solid #ccc;
-                border-radius: 5px;
-                padding: 6px;
-                margin-bottom: 10px;
-            }
-            QPushButton {
-                background-color: #4a90e2;
-                color: white;
-                border-radius: 5px;
-                padding: 8px;
-                font-size: 14px;
-            }
-            QPushButton:hover {
-                background-color: #357abd;
-            }
-            QPushButton#LinkButton {
-                background: transparent;
-                color: #4a90e2;
-                border: none;
-                text-decoration: underline;
-                font-size: 13px;
-            }
-            QFrame#LoginBox {
-                background: #fff;
-                border: 1px solid #ccc;
-                border-radius: 10px;
-                padding: 30px;
-                max-width: 500px;
-                min-width: 400px;
-                margin-left: auto;
-                margin-right: auto;
-            }
-        '''
+        try:
+            style_path = os.path.join(os.path.dirname(__file__), "style.qss")
+            with open(style_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            print(f"[Style] 스타일 로딩 실패: {e}")
+            return ""
+

@@ -1,3 +1,5 @@
+from common.logger import log_to_db
+
 def handle_audio_stream_start(payload: dict) -> dict:
     try:
         audio_id = payload.get("audioId")
@@ -6,8 +8,11 @@ def handle_audio_stream_start(payload: dict) -> dict:
         channels = payload.get("channels", 1)
         chunk_size = payload.get("chunkSize", 1024)
 
-        if not audio_id:
-            return {"resultCode": 4001, "resultMsg": "audioId 누락"}
+        log_to_db(
+            user_id=0,
+            log_type="audio_stream",
+            detail=f"[오디오 스트리밍 시작] audioId={audio_id}, codec={codec}, rate={sample_rate}, ch={channels}, chunk={chunk_size}"
+        )
 
         return {
             "resultCode": 1000,
@@ -23,4 +28,7 @@ def handle_audio_stream_start(payload: dict) -> dict:
         }
 
     except Exception as e:
-        return {"resultCode": 4002, "resultMsg": str(e)}
+        return {
+            "resultCode": 4000,
+            "resultMsg": str(e)
+        }
