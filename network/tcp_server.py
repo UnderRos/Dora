@@ -1,13 +1,12 @@
 import socket
 import threading
 import json
-from dispatcher import dispatch
+from core.dispatcher import dispatch
 
 HOST = '0.0.0.0'
 PORT = 9000
 BUFFER_SIZE = 4096
 ENCODING = 'utf-8'
-
 
 def handle_client(conn, addr):
     print(f"[TCP] 클라이언트 접속: {addr}")

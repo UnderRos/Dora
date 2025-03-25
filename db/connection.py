@@ -1,6 +1,6 @@
 import mysql.connector
 from mysql.connector import Error
-from settings import DB_CONFIG
+from core.settings import DB_CONFIG
 
 class Database:
     def __init__(self):

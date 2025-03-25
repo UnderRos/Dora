@@ -1,3 +1,4 @@
+import os
 import sys
 import threading
 from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QTabWidget, QLabel
@@ -39,29 +40,13 @@ class DoraGUI(QWidget):
         self.show_main_tabs()
 
     def load_styles(self):
-        return """
-            QWidget {
-                background-color: #f9f9fb;
-                font-family: 'Segoe UI', sans-serif;
-            }
-            QTabWidget::pane {
-                border: 1px solid #ccc;
-                background: #fff;
-                border-radius: 10px;
-            }
-            QTabBar::tab {
-                background: #eee;
-                border: 1px solid #ccc;
-                padding: 8px 16px;
-                margin: 2px;
-                border-top-left-radius: 8px;
-                border-top-right-radius: 8px;
-            }
-            QTabBar::tab:selected {
-                background: #fff;
-                font-weight: bold;
-            }
-        """
+        try:
+            style_path = os.path.join(os.path.dirname(__file__), "views", "style.qss")
+            with open(style_path, "r", encoding="utf-8") as f:
+                return f.read()
+        except Exception as e:
+            print(f"[Style] 스타일 로딩 실패: {e}")
+            return ""
 
 if __name__ == '__main__':
     threading.Thread(target=start_server, daemon=True).start()
