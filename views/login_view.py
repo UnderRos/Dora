@@ -1,3 +1,4 @@
+import os
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QFrame, QLineEdit, QPushButton, QHBoxLayout, QLabel, QSizePolicy, QMessageBox
 from PyQt5.QtCore import Qt
 from views.components.signup_dialog import SignUpDialog

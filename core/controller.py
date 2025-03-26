@@ -11,7 +11,9 @@ def handle_login_request(email: str, password: str):
             "userPassword": password
         }
     }
-    print("[Controller] 로그인 요청:", message)
+    
+    masked = {**message, "payload": {**message["payload"], "userPassword": "***"}}
+    print("[Controller] 로그인 요청:", masked)
     response = send_message_to_server(message)
     print("[Controller] 로그인 응답:", response)
     if response.get("result") == "success":
@@ -29,7 +31,8 @@ def handle_signup_request(name: str, nickname: str, email: str, password: str):
             "userPassword": password
         }
     }
-    print("[Controller] 회원가입 요청:", message)
+    masked = {**message, "payload": {**message["payload"], "userPassword": "***"}}
+    print("[Controller] 회원가입 요청:", masked)
     response = send_message_to_server(message)
     if response.get("result") == "success":
         log_to_db(response.get("userId", 0), "signup", f"회원가입 요청: {email}")
@@ -109,6 +112,11 @@ def handle_get_character_request(user_id: int):
     }
     print("[Controller] 펫의 성격 조회 요청:", message_data)
     response = send_message_to_server(message_data)
+
+    if response.get("result") == "fail" and response.get("reason") == "설정 없음":
+        print("[Controller] 펫 성격 설정 없음 → 기본값 사용")
+        return {"speech": "존댓말", "character": "내향적", "resSetting": ""}
+
     print("[Controller] 펫의 성격 조회 응답:", response)
     return response
 
