@@ -2,9 +2,62 @@ import os
 import cv2
 import pyaudio
 import wave
+import threading
 from datetime import datetime
-from settings import VIDEO_CONFIG, AUDIO_CONFIG
+from core.settings import VIDEO_CONFIG, AUDIO_CONFIG
 
+class LiveAudioRecorder:
+    def __init__(self):
+        self.frames = []
+        self.running = False
+        self.thread = None
+        self.sample_rate = AUDIO_CONFIG["sample_rate"]
+        self.chunk = AUDIO_CONFIG["chunk_size"]
+        self.channels = AUDIO_CONFIG["channels"]
+        self.save_dir = AUDIO_CONFIG["save_dir"]
+
+    def _record_loop(self):
+        import pyaudio
+        p = pyaudio.PyAudio()
+        stream = p.open(format=pyaudio.paInt16,
+                        channels=self.channels,
+                        rate=self.sample_rate,
+                        input=True,
+                        frames_per_buffer=self.chunk)
+        self.stream = stream
+
+        while self.running:
+            data = stream.read(self.chunk)
+            self.frames.append(data)
+
+        stream.stop_stream()
+        stream.close()
+        p.terminate()
+
+    def start(self):
+        os.makedirs(self.save_dir, exist_ok=True)
+        self.frames = []
+        self.running = True
+        self.thread = threading.Thread(target=self._record_loop)
+        self.thread.start()
+
+    def stop(self) -> str:
+        self.running = False
+        self.thread.join()
+
+        from datetime import datetime
+        import wave
+        filename = f"voice_{datetime.now().strftime('%Y%m%d_%H%M%S')}.wav"
+        output_path = os.path.join(self.save_dir, filename)
+
+        wf = wave.open(output_path, 'wb')
+        wf.setnchannels(self.channels)
+        wf.setsampwidth(pyaudio.PyAudio().get_sample_size(pyaudio.paInt16))
+        wf.setframerate(self.sample_rate)
+        wf.writeframes(b''.join(self.frames))
+        wf.close()
+
+        return output_path
 
 def generate_filename(prefix: str, ext: str, directory: str) -> str:
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -36,42 +89,4 @@ class VideoRecorder:
 
         cap.release()
         out.release()
-        return output_path
-
-
-class AudioRecorder:
-    def __init__(self, duration=None):
-        self.duration = duration or AUDIO_CONFIG["duration"]
-        self.save_dir = AUDIO_CONFIG["save_dir"]
-        self.sample_rate = AUDIO_CONFIG["sample_rate"]
-        self.chunk = AUDIO_CONFIG["chunk_size"]
-        self.channels = AUDIO_CONFIG["channels"]
-
-    def record(self) -> str:
-        os.makedirs(self.save_dir, exist_ok=True)
-        output_path = generate_filename("voice", "wav", self.save_dir)
-
-        p = pyaudio.PyAudio()
-        stream = p.open(format=pyaudio.paInt16,
-                        channels=self.channels,
-                        rate=self.sample_rate,
-                        input=True,
-                        frames_per_buffer=self.chunk)
-
-        frames = []
-        for _ in range(int(self.sample_rate / self.chunk * self.duration)):
-            data = stream.read(self.chunk)
-            frames.append(data)
-
-        stream.stop_stream()
-        stream.close()
-        p.terminate()
-
-        wf = wave.open(output_path, 'wb')
-        wf.setnchannels(self.channels)
-        wf.setsampwidth(p.get_sample_size(pyaudio.paInt16))
-        wf.setframerate(self.sample_rate)
-        wf.writeframes(b''.join(frames))
-        wf.close()
-
         return output_path

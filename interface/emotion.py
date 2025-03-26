@@ -1,5 +1,5 @@
 from db.models import UserEmotionAnalysis
-from db.query import insert_emotion_analysis
+from db.query import insert_user_emotion_analysis
 from datetime import datetime
 from common.logger import log_to_db
 from ai.emotion_analyzer import analyze_emotion
@@ -34,7 +34,7 @@ def handle_emotion_analysis(payload: dict) -> dict:
             time=now
         )
 
-        emotion_id = insert_emotion_analysis(analysis)
+        emotion_id = insert_user_emotion_analysis(analysis)
 
         log_to_db(
             user_id=user_id,
