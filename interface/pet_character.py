@@ -1,5 +1,6 @@
 from db.models import PetCharacterSetting
 from db.query import insert_character_setting, get_character_setting
+from common.logger import log_to_db
 
 def handle_set_character(payload: dict) -> dict:
     try:
@@ -20,6 +21,12 @@ def handle_set_character(payload: dict) -> dict:
         )
 
         character_id = insert_character_setting(setting)
+
+        log_to_db(
+            user_id=user_id,
+            log_type="set_character",
+            detail=f"캐릭터 설정: 말투={speech}, 성격={character}, 설정={res_setting}"
+        )
 
         return {
             "result": "success",

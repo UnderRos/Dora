@@ -4,3 +4,10 @@
 
 __pycache__/
 *.pyc
+
+*.gguf
+
+*.mp4
+*.wav
+
+*.csv

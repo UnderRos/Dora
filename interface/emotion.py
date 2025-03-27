@@ -1,6 +1,8 @@
 from db.models import UserEmotionAnalysis
-from db.query import insert_emotion_analysis
+from db.query import insert_user_emotion_analysis
 from datetime import datetime
+from common.logger import log_to_db
+from ai.emotion_analyzer import analyze_emotion
 
 def handle_emotion_analysis(payload: dict) -> dict:
     try:
@@ -13,11 +15,12 @@ def handle_emotion_analysis(payload: dict) -> dict:
         if not (user_id and chat_id):
             return {"result": "fail", "reason": "필수 정보 누락"}
 
-        # 감정 분석 모듈 연동 부분 (임시로 하드코딩된 결과 사용)
-        face_emotion = "happy"
-        voice_emotion = "calm"
-        text_emotion = "worried"
-        summary = "조금 걱정되지만 침착함"
+        # 실제 감정 분석 수행
+        result = analyze_emotion(message=message, video_path=video_path, voice_path=voice_path)
+        face_emotion = result.get("face")
+        voice_emotion = result.get("voice")
+        text_emotion = result.get("text")
+        summary = result.get("summary")
         now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         analysis = UserEmotionAnalysis(
@@ -31,7 +34,13 @@ def handle_emotion_analysis(payload: dict) -> dict:
             time=now
         )
 
-        emotion_id = insert_emotion_analysis(analysis)
+        emotion_id = insert_user_emotion_analysis(analysis)
+
+        log_to_db(
+            user_id=user_id,
+            log_type="emotion_analysis",
+            detail=f"[감정분석] chat_id={chat_id}, face={face_emotion}, voice={voice_emotion}, text={text_emotion}"
+        )
 
         return {
             "result": "success",

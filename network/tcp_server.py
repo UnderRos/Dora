@@ -1,13 +1,12 @@
 import socket
 import threading
 import json
-from dispatcher import dispatch
+from core.dispatcher import dispatch
 
 HOST = '0.0.0.0'
 PORT = 9000
 BUFFER_SIZE = 4096
 ENCODING = 'utf-8'
-
 
 def handle_client(conn, addr):
     print(f"[TCP] 클라이언트 접속: {addr}")
@@ -20,7 +19,20 @@ def handle_client(conn, addr):
                     break
 
                 message = data.decode(ENCODING)
-                print(f"[TCP] 수신 데이터: {message}")
+
+                # 로그 출력 전, 비밀번호 마스킹
+                try:
+                    temp_json = json.loads(message)
+                    if isinstance(temp_json, dict):
+                        if "payload" in temp_json and isinstance(temp_json["payload"], dict):
+                            if "userPassword" in temp_json["payload"]:
+                                temp_json["payload"]["userPassword"] = "***"
+                        print(f"[TCP] 수신 데이터: {json.dumps(temp_json)}")
+                    else:
+                        print(f"[TCP] 수신 데이터: {message}")
+                except json.JSONDecodeError:
+                    print(f"[TCP] 수신 데이터: {message}")
+
 
                 try:
                     json_data = json.loads(message)

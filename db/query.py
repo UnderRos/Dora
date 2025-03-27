@@ -69,9 +69,25 @@ def insert_chat(chat: Chat) -> int:
     db.disconnect()
     return chat_id
 
+def get_recent_chats(user_id: int, limit: int = 10) -> list[Chat]:
+    db = Database()
+    db.connect()
+    query = """
+        SELECT message, reply_message
+        FROM Chat
+        WHERE user_id = %s
+        ORDER BY chat_id DESC
+        LIMIT %s
+    """
+    db.execute(query, (user_id, limit))
+    result = db.fetchall()
+    db.disconnect()
+    return result[::-1]  # 최신 → 오래된 순서로 바꿈
+
+
 # ---------------------- UserEmotionAnalysis ----------------------
 
-def insert_emotion_analysis(analysis: UserEmotionAnalysis) -> int:
+def insert_user_emotion_analysis(analysis: UserEmotionAnalysis) -> int:
     db = Database()
     db.connect()
     query = """
@@ -87,6 +103,21 @@ def insert_emotion_analysis(analysis: UserEmotionAnalysis) -> int:
     result_id = db.lastrowid()
     db.disconnect()
     return result_id
+
+def get_user_emotion_analysis(user_id: int) -> list[dict]:
+    db = Database()
+    db.connect()
+    query = """
+        SELECT time, summary, face_emotion, voice_emotion, text_emotion
+        FROM UserEmotionAnalysis
+        WHERE user_id = %s
+        ORDER BY time DESC
+        LIMIT 50
+    """
+    db.execute(query, (user_id,))
+    result = db.fetchall()
+    db.disconnect()
+    return result
 
 # ---------------------- PetCharacterSetting ----------------------
 
