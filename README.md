@@ -56,7 +56,7 @@
 
 | **분류**               | **사용 기술** |
 |------------------------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **Language**           | ![Python](https://img.shields.io/badge/Python-3.10-blue?style=flat-square&logo=Python&logoColor=white) |
+| **Language**           | ![Python](https://img.shields.io/badge/Python-3.12-blue?style=flat-square&logo=Python&logoColor=white) |
 | **GUI Framework**      | ![PyQt5](https://img.shields.io/badge/PyQt5-GUI%20Framework-green?style=flat-square&logo=qt&logoColor=white) &nbsp; ![Tkinter](https://img.shields.io/badge/Tkinter-GUI%20Framework-lightgrey?style=flat-square) |
 | **영상/얼굴 인식**      | ![OpenCV](https://img.shields.io/badge/OpenCV-Video%20Processing-orange?style=flat-square&logo=opencv&logoColor=white) &nbsp; ![Mediapipe](https://img.shields.io/badge/Mediapipe-Face%20Landmarks-red?style=flat-square) |
 | **음성 처리**          | ![SpeechRecognition](https://img.shields.io/badge/SpeechRecognition-Audio-yellow?style=flat-square) |
