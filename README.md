@@ -53,7 +53,7 @@
 ---
 
 ## 기술 스택
-![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white)
+![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
 ![PyQt5](https://img.shields.io/badge/PyQt5-GUI%20Framework-green?logo=qt&logoColor=white)
 ![Tkinter](https://img.shields.io/badge/Tkinter-GUI%20Framework-lightgrey)
 ![OpenCV](https://img.shields.io/badge/OpenCV-Video%20Processing-orange?logo=opencv&logoColor=white)
