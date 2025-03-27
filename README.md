@@ -52,19 +52,22 @@
 
 ---
 
-## 기술 스택
-![Python](https://img.shields.io/badge/Python-3.12-blue?logo=python&logoColor=white)
-![PyQt5](https://img.shields.io/badge/PyQt5-GUI%20Framework-green?logo=qt&logoColor=white)
-![Tkinter](https://img.shields.io/badge/Tkinter-GUI%20Framework-lightgrey)
-![OpenCV](https://img.shields.io/badge/OpenCV-Video%20Processing-orange?logo=opencv&logoColor=white)
-![Mediapipe](https://img.shields.io/badge/Mediapipe-Face%20Landmarks-red)
-![SpeechRecognition](https://img.shields.io/badge/SpeechRecognition-Audio-yellow)
-![TensorFlow](https://img.shields.io/badge/TensorFlow-ML-orange?logo=tensorflow)
-![PyTorch](https://img.shields.io/badge/PyTorch-DeepLearning-red?logo=pytorch)
-![Transformers](https://img.shields.io/badge/Transformers-HuggingFace-yellow?logo=huggingface)
-![KoBERT](https://img.shields.io/badge/KoBERT-Korean%20NLP-blue)
-![MySQL](https://img.shields.io/badge/MySQL-Database-blue?logo=mysql)
-![SQLite](https://img.shields.io/badge/SQLite-LightweightDB-lightblue?logo=sqlite)
+### 기술 스택
+
+#### OS & Editor
+- ![Ubuntu](https://img.shields.io/badge/Ubuntu-E95420?style=flat&logo=ubuntu&logoColor=white)
+- ![VSCode](https://img.shields.io/badge/Visual%20Studio%20Code-007ACC?style=flat&logo=visualstudiocode&logoColor=white)
+
+#### Language & Libraries
+- ![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)
+- ![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat&logo=pandas&logoColor=white)
+- ![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat&logo=numpy&logoColor=white)
+- ![Matplotlib](https://img.shields.io/badge/Matplotlib-11557C?style=flat&logo=matplotlib&logoColor=white)
+
+#### Version Control
+- ![GitHub](https://img.shields.io/badge/GitHub-181717?style=flat&logo=github&logoColor=white)
+- ![Git](https://img.shields.io/badge/Git-F05032?style=flat&logo=git&logoColor=white)
+
 ---
 
 ## 설치 및 실행 방법
