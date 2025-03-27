@@ -401,70 +401,106 @@
 ## 3. 디렉토리 및 파일 구조
 
 ```plaintext
-마지막으로, 이 구조 맞는지만 확인해주라.
-
-project_root/
-├── main.py                           # PyQt 앱 실행 진입점
-├── controller.py                     # PyQt View 이벤트 핸들링 → socket 전송
-├── socket_client.py                  # TCP/UDP 통신 클라이언트
-├── dispatcher/                       # 클라이언트 명령 처리 분기
-│   └── dispatcher.py                 # command → handler 라우팅
-├── views/                            # PyQt UI 화면 구성
-│   ├── main_window.py                # QMainWindow + 화면 전환
-│   ├── login_view.py
-│   ├── link_view.py
-│   ├── main_view.py                  # 전체 메인 화면 (stacked layout)
-│   ├── chat_panel.py
-│   ├── user_status_panel.py
-│   ├── pet_panel.py
-│   └── setting_panel.py
-├── components/                       # 공통 재사용 UI 위젯
-│   ├── rounded_button.py
-│   └── emoticon_label.py
-├── network/                          # 서버 측 네트워크 처리
-│   ├── tcp_server.py
-│   ├── udp_stream.py
-│   └── protocol.py                   # 메시지 형식, 공통 파서
-├── interface/                        # 서버 수신 command 핸들러
-│   ├── login.py
-│   ├── chat.py
-│   ├── emotion.py
-│   ├── pet_character.py
-│   ├── pet_training.py
-│   ├── gesture.py
-│   ├── setting.py
-│   ├── log.py
-│   ├── video.py
-│   └── audio.py
-├── db/                               # DB 연결 및 ORM/Query 처리
+dora_project_root
+├── README.md
+├── ai
+│   ├── emotion_analyzer.py                   # 감정 분석 모델 로드 및 예측
+│   ├── llm
+│   │   └── gpt_wrapper.py
+│   ├── models                        # 학습된 모델 파일 저장
+│   │   ├── face_emotion_model.h5
+│   │   ├── text_emotion_model.h5
+│   │   └── voice_emotion_model.h5
+│   └── training                   # 모델 학습 및 저장
+│       ├── NMT_test.ipynb
+│       ├── STT_Emition_API.ipynb
+│       ├── data
+│       │   ├── face_emotion_dataset
+│       │   ├── test_voice_record
+│       │   │   ├── test_1.wav
+│       │   │   ├── test_2.m4a
+│       │   │   └── test_2.wav
+│       │   ├── text_emotion_dataset
+│       │   ├── usou
+│       │   │   └── test_voice_record(use_stt)
+│       │   │       ├── test_1.wav
+│       │   │       ├── test_2.m4a
+│       │   │       └── test_2.wav
+│       │   └── voice_emotion_dataset
+│       ├── emotion_detection
+│       │   ├── data
+│       │   │   └── archive
+│       │   │       ├── test
+│       │   │       └── train
+│       │   └── emotion_detection.py
+│       ├── gTTS_test.py
+│       ├── train_face_emotion_model.py
+│       ├── train_text_emotion_model.py
+│       └── train_voice_emotion_model.py
+├── common
+│   ├── logger.py                     # 로그 기록 처리
+│   └── recorder.py
+├── core
+│   ├── controller.py                     # PyQt View 이벤트 핸들링 → socket 전송
+│   ├── dispatcher.py                       # 클라이언트 명령 처리 분기: command → handler 라우팅
+│   ├── settings.py                   # DB, 포트, 경로 설정
+│   └── socket_client.py                  # TCP/UDP 통신 클라이언트
+├── db                               # DB 연결 및 ORM/Query 처
 │   ├── connection.py                 # MySQL 연결 관리
+│   ├── dora.sql
 │   ├── models.py                     # 테이블 모델 클래스
 │   ├── query.py                      # 기능별 쿼리 모듈 분리
-│   └── seed.py                       # 더미 파일
-├── emotion/                          # 감정 분석 처리 모듈
-│   ├── analyzer.py                   # 감정 분석 모델 로드 및 예측
-│   └── model/                        # 학습된 모델 파일 저장
-│       ├── face_emotion_model.h5
-│       ├── voice_emotion_model.h5
-│       └── text_emotion_model.h5
-├── media/                            # 스트리밍 처리
-│   ├── video_streamer.py
-│   └── audio_streamer.py
-├── model_training/                   # 모델 학습 및 저장
-│   ├── train_face_emotion_model.py   # 얼굴 감정 모델 학습 코드
-│   ├── train_voice_emotion_model.py  # 음성 감정 모델 학습 코드
-│   ├── train_text_emotion_model.py   # 텍스트 감정 모델 학습 코드
-│   └── datasets/                     # 학습 데이터셋 저장
-│       ├── face_emotion_dataset/
-│       ├── voice_emotion_dataset/
-│       └── text_emotion_dataset/
-├── config/
-│   └── settings.py                   # DB, 포트, 경로 설정
-├── log/
-│   └── logger.py                     # 로그 기록 처리
-└── style/
-    └── style.qss                     # 전역 스타일 시트
+│   ├── seed.py                       # 더미 파일
+│   └── utils.py
+├── docs
+│   ├── dolbom_interface_spec.md
+│   ├── dora-db-erd.png
+│   ├── faq.md
+│   ├── setup.md
+│   ├── soouhperbad.md
+│   ├── soouhpernova.md
+│   ├── story.md
+│   └── story_overview.md
+├── interface                        # 서버 수신 command 핸들러
+│   ├── audio.py
+│   ├── chat.py
+│   ├── emotion.py
+│   ├── gesture.py
+│   ├── log.py
+│   ├── login.py
+│   ├── pet_character.py
+│   ├── pet_training.py
+│   ├── setting.py
+│   └── video.py
+├── main.py                           # PyQt 앱 실행 진입점
+├── network                          # 서버 측 네트워크 처리
+│   ├── audio_streamer.py
+│   ├── gesture_sender.py
+│   ├── protocol.py                   # 메시지 형식, 공통 파서
+│   ├── tcp_server.py
+│   ├── udp_stream.py
+│   └── video_streamer.py
+└── views                            # PyQt UI 화면 구성
+    ├── chat_panel.py
+    ├── components                       # 공통 재사용 UI 위젯
+    │   ├── emoticon_label.py
+    │   ├── rounded_button.py
+    │   └── signup_dialog.py
+    ├── link_view.py
+    ├── login_view.py
+    ├── main_view.py                  # 전체 메인 화면 
+    ├── main_window.py                # QMainWindow + 화면 전환
+    ├── pet_panel.py
+    ├── setting_panel.py
+    ├── style.qss                     # 전역 스타일 시트
+    └── user_status_panel.py
+
+
+
+
 ```
+
+
 
 ---
 
