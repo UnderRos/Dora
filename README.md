@@ -56,13 +56,13 @@
 
 | 분류 | 사용 기술 |
 |------|-----------|
-| **Language** | ![Python](https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white) |
-| **GUI Framework** | ![PyQt5](https://img.shields.io/badge/PyQt5-GUI%20Framework-green?logo=qt&logoColor=white) ![Tkinter](https://img.shields.io/badge/Tkinter-GUI%20Framework-lightgrey) |
-| **영상 및 얼굴 인식** | ![OpenCV](https://img.shields.io/badge/OpenCV-Video%20Processing-orange?logo=opencv&logoColor=white) ![Mediapipe](https://img.shields.io/badge/Mediapipe-Face%20Landmarks-red) |
-| **음성 처리** | ![SpeechRecognition](https://img.shields.io/badge/SpeechRecognition-Audio-yellow) |
-| **딥러닝 프레임워크** | ![TensorFlow](https://img.shields.io/badge/TensorFlow-ML-orange?logo=tensorflow) ![PyTorch](https://img.shields.io/badge/PyTorch-DeepLearning-red?logo=pytorch) |
-| **자연어 처리(NLP)** | ![Transformers](https://img.shields.io/badge/Transformers-HuggingFace-yellow?logo=huggingface) ![KoBERT](https://img.shields.io/badge/KoBERT-Korean%20NLP-blue) |
-| **데이터베이스** | ![MySQL](https://img.shields.io/badge/MySQL-Database-blue?logo=mysql) ![SQLite](https://img.shields.io/badge/SQLite-LightweightDB-lightblue?logo=sqlite) |
+| **Language** | <img src="https://img.shields.io/badge/Python-3.10-blue?logo=python&logoColor=white"/> |
+| **GUI Framework** | <img src="https://img.shields.io/badge/PyQt5-GUI%20Framework-green?logo=qt&logoColor=white"/> <img src="https://img.shields.io/badge/Tkinter-GUI%20Framework-lightgrey"/> |
+| **영상 및 얼굴 인식** | <img src="https://img.shields.io/badge/OpenCV-Video%20Processing-orange?logo=opencv&logoColor=white"/> <img src="https://img.shields.io/badge/Mediapipe-Face%20Landmarks-red"/> |
+| **음성 처리** | <img src="https://img.shields.io/badge/SpeechRecognition-Audio-yellow"/> |
+| **딥러닝 프레임워크** | <img src="https://img.shields.io/badge/TensorFlow-ML-orange?logo=tensorflow"/> <img src="https://img.shields.io/badge/PyTorch-DeepLearning-red?logo=pytorch"/> |
+| **자연어 처리 (NLP)** | <img src="https://img.shields.io/badge/Transformers-HuggingFace-yellow?logo=huggingface"/> <img src="https://img.shields.io/badge/KoBERT-Korean%20NLP-blue"/> |
+| **Database** | <img src="https://img.shields.io/badge/MySQL-Database-blue?logo=mysql"/> <img src="https://img.shields.io/badge/SQLite-LightweightDB-lightblue?logo=sqlite"/> |
 
 ---
 
