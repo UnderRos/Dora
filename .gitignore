@@ -11,3 +11,9 @@ __pycache__/
 *.wav
 
 *.csv
+
+*.jpg
+*.jpeg
+*.png
+
+*.npy
