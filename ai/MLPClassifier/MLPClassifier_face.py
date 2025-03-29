@@ -6,19 +6,28 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.metrics import classification_report
 import numpy as np
 from tqdm import tqdm
+import joblib
 
 # 숫자 라벨 → 텍스트 감정 라벨 매핑
 label_map = {0: "angry", 1: "happy", 2: "neutral", 3: "sad"}
 
+# 임베딩 파일들을 저장할 폴더 (현재 작업 디렉토리 내)
+BASE_DIR = "./MLPClassifier"
+os.makedirs(BASE_DIR, exist_ok=True)
+
+embeddings_file = os.path.join(BASE_DIR, "embeddings.npy")
+labels_file = os.path.join(BASE_DIR, "labels.npy")
+intermediate_embeddings = os.path.join(BASE_DIR, "embeddings_intermediate.npy")
+intermediate_labels = os.path.join(BASE_DIR, "labels_intermediate.npy")
+
 def load_dataset_from_csv(csv_path, img_root, model_name="ArcFace",
                           batch_size=5000, 
-                          embeddings_file="embeddings.npy", 
-                          labels_file="labels.npy",
-                          intermediate_embeddings="embeddings_intermediate.npy",
-                          intermediate_labels="labels_intermediate.npy"):
+                          embeddings_file=embeddings_file, 
+                          labels_file=labels_file,
+                          intermediate_embeddings=intermediate_embeddings,
+                          intermediate_labels=intermediate_labels):
     # CSV 파일 로드: 헤더가 있으면 그대로 사용, 없으면 기본 컬럼명 지정
     df = pd.read_csv(csv_path)
-    # CSV 헤더가 "path"로 되어 있다면 "filename"으로 변경
     if "path" in df.columns:
         df.rename(columns={"path": "filename"}, inplace=True)
     elif "filename" not in df.columns:
@@ -41,7 +50,7 @@ def load_dataset_from_csv(csv_path, img_root, model_name="ArcFace",
         end = min(start + batch_size, total)
         batch_df = df.iloc[start:end]
         for _, row in batch_df.iterrows():
-            # CSV에 들어있는 경로가 전체 경로일 경우, os.path.basename() 사용
+            # CSV에 들어있는 경로가 전체 경로라면 os.path.basename() 사용
             filename = os.path.basename(row["filename"])
             img_path = os.path.join(img_root, filename)
             if not os.path.exists(img_path):
@@ -69,8 +78,12 @@ def load_dataset_from_csv(csv_path, img_root, model_name="ArcFace",
     print("임베딩 추출 및 최종 저장 완료!")
     return X, y
 
+# CSV 파일과 이미지 폴더의 경로 (현재 작업 디렉토리 기준)
+csv_path = "./color_dataset.csv"
+img_root = "./color_dataset"
+
 # 데이터셋 로드 (배치 처리 및 중간 저장 적용)
-X, y = load_dataset_from_csv("color_dataset.csv", "color_dataset", batch_size=5000)
+X, y = load_dataset_from_csv(csv_path, img_root, batch_size=5000)
 
 # 데이터 분할 (train: 80%, test: 20%)
 X_train, X_test, y_train, y_test = train_test_split(
@@ -84,3 +97,15 @@ clf.fit(X_train, y_train)
 # 평가
 y_pred = clf.predict(X_test)
 print(classification_report(y_test, y_pred))
+
+# 결과 저장할 폴더 생성
+os.makedirs("./MLPClassifier/results", exist_ok=True)
+
+# y_test, y_pred 저장 (시각화용)
+np.save("./results/y_test.npy", y_test)
+np.save("./results/y_pred.npy", y_pred)
+print("y_test.npy, y_pred.npy 저장 완료 (results/ 폴더)")
+
+# 모델 저장
+joblib.dump(clf, "./results/mlp_model.pkl")
+print("MLP 모델 저장 완료 (results/mlp_model.pkl)")
