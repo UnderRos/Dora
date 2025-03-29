@@ -1,5 +1,13 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTextBrowser, QPushButton, QCheckBox, QMessageBox
-from PyQt5.QtCore import Qt, QUrl
+import sys
+import threading
+import time
+import cv2
+from PyQt5.QtWidgets import (
+    QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTextBrowser, QPushButton,
+    QCheckBox, QMessageBox, QLabel
+)
+from PyQt5.QtCore import Qt, QUrl, QTimer
+from PyQt5.QtGui import QImage, QPixmap
 from core.controller import handle_chat_request
 from db.query import get_recent_chats
 from ai.stt_wrapper import transcribe_audio
@@ -13,6 +21,12 @@ class ChatPanel(QWidget):
         self.user_id = user_id
         self.user_name = user_name
         self.recorder = None
+
+        # 웹캠 관련 변수
+        self.camera_capture = None
+        self.camera_timer = QTimer(self)
+        self.camera_timer.timeout.connect(self.update_camera_frame)
+
         self.init_ui()
         self.load_chat_history()
 
@@ -33,9 +47,14 @@ class ChatPanel(QWidget):
         send_button = QPushButton("전송")
         send_button.clicked.connect(self.send_chat_message)
 
+        # 토글 영역 - 카메라와 마이크 체크박스
         toggles = QHBoxLayout()
-        toggles.addWidget(QCheckBox("카메라 ON"))
-        toggles.addWidget(QCheckBox("마이크 ON"))
+        self.camera_checkbox = QCheckBox("카메라 ON")
+        self.camera_checkbox.toggled.connect(self.toggle_camera)
+        self.mic_checkbox = QCheckBox("마이크 ON")
+        # 마이크 기능은 기존 코드와 연동하시거나 추후 구현하세요.
+        toggles.addWidget(self.camera_checkbox)
+        toggles.addWidget(self.mic_checkbox)
 
         input_layout = QHBoxLayout()
         input_layout.addWidget(self.chat_input)
@@ -45,29 +64,32 @@ class ChatPanel(QWidget):
         layout.addWidget(self.chat_display)
         layout.addLayout(input_layout)
 
-        # 음성 제어 버튼
+        # 음성 제어 버튼 영역
         self.start_voice_btn = QPushButton("음성 입력 시작")
         self.stop_voice_btn = QPushButton("음성 입력 종료")
         self.stop_voice_btn.setEnabled(False)
-
         self.start_voice_btn.clicked.connect(self.start_recording)
         self.stop_voice_btn.clicked.connect(self.stop_recording)
-
         voice_btns = QHBoxLayout()
         voice_btns.addWidget(self.start_voice_btn)
         voice_btns.addWidget(self.stop_voice_btn)
         layout.addLayout(voice_btns)
+
+        # 웹캠 영상을 표시할 QLabel (초기에는 숨김)
+        self.camera_label = QLabel()
+        self.camera_label.setFixedSize(320, 240)
+        self.camera_label.setStyleSheet("background-color: black;")
+        self.camera_label.setVisible(False)
+        layout.addWidget(self.camera_label)
 
         self.setLayout(layout)
 
     def load_chat_history(self):
         history = get_recent_chats(self.user_id, limit=20)
         self.chat_display.clear()
-
         for chat in history:
             user_msg = chat.get("message", "")
             dora_reply = chat.get("reply_message", "")
-
             if user_msg:
                 self.chat_display.append(f"<b>{self.user_name}</b>: {user_msg}<br>")
             if dora_reply:
@@ -79,10 +101,8 @@ class ChatPanel(QWidget):
         text = self.chat_input.toPlainText().strip()
         if not text:
             return
-
         self.chat_input.clear()
         response = handle_chat_request(self.user_id, text)
-
         if response.get("result") == "success":
             self.chat_display.clear()
             self.load_chat_history()
@@ -116,3 +136,45 @@ class ChatPanel(QWidget):
     def on_chat_anchor_clicked(self, url: QUrl):
         text = url.toString()
         speak_text_korean(text)
+
+    # --- 웹캠 관련 메서드 ---
+    def toggle_camera(self, checked: bool):
+        if checked:
+            self.start_camera()
+        else:
+            self.stop_camera()
+
+    def start_camera(self):
+        # 웹캠 열기
+        self.camera_capture = cv2.VideoCapture(0)
+        if not self.camera_capture.isOpened():
+            QMessageBox.critical(self, "카메라 오류", "웹캠을 열 수 없습니다.")
+            self.camera_checkbox.setChecked(False)
+            return
+        self.camera_label.setVisible(True)
+        # 타이머 시작 (예: 30ms 간격)
+        self.camera_timer.start(30)
+
+    def stop_camera(self):
+        self.camera_timer.stop()
+        if self.camera_capture:
+            self.camera_capture.release()
+            self.camera_capture = None
+        self.camera_label.clear()
+        self.camera_label.setVisible(False)
+
+    def update_camera_frame(self):
+        if self.camera_capture and self.camera_capture.isOpened():
+            ret, frame = self.camera_capture.read()
+            if ret:
+                # BGR -> RGB 변환
+                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+                h, w, ch = rgb_frame.shape
+                bytes_per_line = ch * w
+                qt_image = QImage(
+                    rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888
+                )
+                pixmap = QPixmap.fromImage(qt_image).scaled(
+                    self.camera_label.width(), self.camera_label.height(), Qt.KeepAspectRatio
+                )
+                self.camera_label.setPixmap(pixmap)
