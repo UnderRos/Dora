@@ -1,6 +1,6 @@
 from whispercpp_kit import WhisperCPP
 
-whisper = WhisperCPP(model_name="base")
+whisper = WhisperCPP(model_name="large-v2")
 whisper.setup() # First-time setup (automatically done on first transcribe)
 
 def transcribe_audio(file_path: str) -> str:
