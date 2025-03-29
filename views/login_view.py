@@ -45,6 +45,13 @@ class LoginView(QWidget):
         login_layout.addWidget(login_btn)
         login_layout.addLayout(signup_layout)
 
+        # 개발 모드일 경우 백도어 로그인 버튼 추가
+        if os.getenv("DEV_MODE", "false").lower() == "true":
+            backdoor_btn = QPushButton("백도어 로그인")
+            backdoor_btn.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed)
+            backdoor_btn.clicked.connect(self.handle_backdoor_login)
+            login_layout.addWidget(backdoor_btn)
+
         login_box.setLayout(login_layout)
 
         layout.addStretch()
@@ -64,6 +71,18 @@ class LoginView(QWidget):
                     self.login_callback(response["userId"], email)  # 또는 닉네임으로 교체 가능
             else:
                 QMessageBox.warning(self, "로그인 실패", response.get("reason", "로그인에 실패했습니다."))
+        else:
+            QMessageBox.warning(self, "입력 오류", "아이디와 비밀번호를 모두 입력하세요.")
+
+    def handle_backdoor_login(self):
+        
+        # 개발 모드에서만 사용 가능한 백도어 로그인.
+        # 클릭 시 임의의 userId와 이메일을 사용하여 바로 로그인된 것처럼 처리합니다.
+        user_id = 1
+        email = "dev@example.com"
+        QMessageBox.information(self, "백도어 로그인", "개발 모드에서 백도어 로그인이 실행되었습니다.")
+        if self.login_callback:
+            self.login_callback(user_id, email)
 
     def show_signup_dialog(self):
         dialog = SignUpDialog()
@@ -77,4 +96,3 @@ class LoginView(QWidget):
         except Exception as e:
             print(f"[Style] 스타일 로딩 실패: {e}")
             return ""
-
