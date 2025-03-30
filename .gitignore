@@ -1,0 +1,13 @@
+.env
+
+.DS_Store
+
+__pycache__/
+*.pyc
+
+*.gguf
+
+*.mp4
+*.wav
+
+*.csv
