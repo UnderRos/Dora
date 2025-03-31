@@ -23,13 +23,12 @@ previous_emotion = ""
 emotion_counter = 0
 stable_emotion = ""
 stable_confidence = 0.0
-threshold_frames = 5  # 감정이 5 프레임 연속 유지되어야 업데이트
+threshold_frames = 2  # 감정이 프레임 연속 유지되어야 업데이트
 
-def analyze_emotion(frame):
-    """
-    전달받은 프레임(이미지 배열)을 DeepFace와 저장된 MLP 모델을 사용하여 감정을 분석하고,
-    안정적인 결과가 나오면 "감정: <라벨> (<확률>%)" 형태의 문자열을 반환합니다.
-    """
+def analyze_emotion(frame): 
+    # 전달받은 프레임(이미지 배열)을 DeepFace와 저장된 MLP 모델을 사용하여 감정을 분석하고,
+    # 안정적인 결과가 나오면 "감정: <라벨> (<확률>%)" 형태의 문자열을 반환합니다.
+    
     global previous_emotion, emotion_counter, stable_emotion, stable_confidence
     try:
         # DeepFace로 임베딩 추출 (enforce_detection=False: 얼굴 검출 실패 시에도 처리)
