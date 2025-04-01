@@ -94,11 +94,11 @@
   - 전반적인 **Accuracy**: 약 **84~86% 수준**
   - 클래스별 Precision / Recall / F1-score:
 
-    <img src="./images/classification_report_bar.png" alt="Classification Report" width="400"/>
+    <img src="./images/classification_report_bar.png" alt="Classification Report" width="600"/>
 
   - Confusion Matrix:
 
-    <img src="./images/confusion_matrix.png" alt="Confusion Matrix" width="400"/>
+    <img src="./images/confusion_matrix.png" alt="Confusion Matrix" width="600"/>
 
 - **기능적 특이점**:
   - 대용량 이미지 배치 처리 + 중간 저장 기능 탑재 (`.npy` 저장으로 중단 복구 가능)
