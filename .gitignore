@@ -15,5 +15,7 @@ __pycache__/
 *.jpg
 *.jpeg
 *.png
+!ai/MLPClassifier/results/classification_report_bar.png
+!ai/MLPClassifier/results/confusion_matrix.png
 
 *.npy
