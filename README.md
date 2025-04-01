@@ -100,9 +100,7 @@
 
     <img src="./images/confusion_matrix.png" alt="Confusion Matrix" width="600"/>
 
-- **기능적 특이점**:
   - 대용량 이미지 배치 처리 + 중간 저장 기능 탑재 (`.npy` 저장으로 중단 복구 가능)
-  - 평균 추론 속도: **약 30~50ms/장** 수준 (실시간 응답에 적합)
   - 학습 모델 및 결과:
     - `./results/mlp_model.pkl`: 학습 완료된 모델 파일
       
