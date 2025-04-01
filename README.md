@@ -91,7 +91,7 @@
 - **데이터 분할**: 학습 80% / 테스트 20% (Stratified 방식)
 
 - **평가 지표**:
-  - 전반적인 **Accuracy**: 약 **84~86% 수준**
+  - 전반적인 **Accuracy**: 약 **89~92% 수준**
   - 클래스별 Precision / Recall / F1-score:
 
     <img src="./images/classification_report_bar.png" alt="Classification Report" width="600"/>
