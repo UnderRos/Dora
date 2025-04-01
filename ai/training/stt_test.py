@@ -1,17 +1,13 @@
 import sys
 from PyQt5.QtWidgets import *
-from PyQt5.QtGui import *
 from PyQt5 import uic
-import time
 from PyQt5.QtCore import QThread, pyqtSignal
-import sounddevice as sd
-import numpy as np
-from scipy.io.wavfile import write
+import speech_recognition as sr
+import time
 
 from_class = uic.loadUiType("stt_test.ui")[0]
 
-
-# 마이크 녹음을 위한 스레드 클래스
+# 마이크 입력을 실시간으로 처리하고 텍스트 인식 결과를 전달하는 스레드 클래스
 class Mic(QThread):
     update = pyqtSignal(str)
 
@@ -19,30 +15,30 @@ class Mic(QThread):
         super().__init__()
         self.main = parent
         self.running = True
-        self.fs = 16000  # 샘플레이트
-        self.recorded_frames = []  # 녹음된 데이터를 저장할 리스트
-
-    def callback(self, indata, frames, time, status):
-        if self.running:
-            self.recorded_frames.append(indata.copy())
+        self.recognizer = sr.Recognizer()
+        self.microphone = sr.Microphone()
 
     def run(self):
         self.running = True
-        self.recorded_frames = []
-
-        with sd.InputStream(samplerate=self.fs, channels=1, callback=self.callback):
+        with self.microphone as source:
+            self.recognizer.adjust_for_ambient_noise(source)  # 주변 잡음 보정
             while self.running:
-                sd.sleep(100)
+                try:
+                    print("듣는 중...")
+                    audio = self.recognizer.listen(source, timeout=5, phrase_time_limit=5)
+                    text = self.recognizer.recognize_google(audio, language="ko-KR")
+                    print("인식 결과:", text)
+                    self.update.emit(text)
+                except sr.UnknownValueError:
+                    self.update.emit("음성을 인식할 수 없습니다.")
+                except sr.RequestError as e:
+                    self.update.emit(f"STT 요청 오류: {e}")
+                except sr.WaitTimeoutError:
+                    continue  # 5초 내 음성이 없으면 건너뛰기
+                time.sleep(0.2)
 
     def stop(self):
         self.running = False
-        time.sleep(0.5)  # 스트림 종료 기다림
-
-        # numpy 배열로 병합
-        audio = np.concatenate(self.recorded_frames, axis=0)
-        write("output.wav", self.fs, audio)  # WAV 파일 저장
-        self.update.emit("녹음 완료: output.wav 저장됨")
-        
 
 # 메인 윈도우 클래스
 class WindowClass(QMainWindow, from_class):
@@ -57,20 +53,19 @@ class WindowClass(QMainWindow, from_class):
         self.btnMic.clicked.connect(self.clickMic)
 
     def updateMic(self, text):
-        self.label.setText(text)
+        self.stt_label.setText(text)
 
     def clickMic(self):
         if not self.isMicOn:
             self.btnMic.setText("마이크 Off")
-            self.label.setText("녹음 중...")
+            self.stt_label.setText("듣는 중...")
             self.isMicOn = True
             self.mic.start()
         else:
             self.btnMic.setText("마이크 On")
-            self.label.setText("저장 중...")
+            self.stt_label.setText("")
             self.isMicOn = False
             self.mic.stop()
-        
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
