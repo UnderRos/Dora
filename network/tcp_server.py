@@ -37,13 +37,29 @@ def handle_client(conn, addr):
                 try:
                     json_data = json.loads(message)
                     response = dispatch(json_data)
+
+                    # stream 처리 분기
+                    if isinstance(response, dict) and response.get("result") == "success" and "responseStream" in response:
+                        for chunk in response["responseStream"]:
+                            conn.sendall((json.dumps({
+                                "type": "stream_chunk",
+                                "chunk": chunk
+                            }) + "\n").encode(ENCODING))
+
+                        conn.sendall((json.dumps({
+                            "type": "stream_done",
+                            "eId": response.get("eId"),
+                            "petEmotion": response.get("petEmotion")
+                        }) + "\n").encode(ENCODING))
+                    else:
+                        conn.sendall((json.dumps(response) + "\n").encode(ENCODING))
+
                 except json.JSONDecodeError:
                     response = {
                         "resultCode": 4001,
                         "resultMsg": "INVALID_JSON"
                     }
-
-                conn.sendall(json.dumps(response).encode(ENCODING))
+                    conn.sendall(json.dumps(response).encode(ENCODING))
 
             except ConnectionResetError:
                 print(f"[TCP] 연결 끊김: {addr}")

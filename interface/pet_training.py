@@ -1,8 +1,9 @@
 from db.models import PetTrainingSetting
 from db.query import insert_training_setting
+from db.query import get_training_settings
 from common.logger import log_to_db
 
-def handle_set_response(payload: dict) -> dict:
+def handle_set_training(payload: dict) -> dict:
     try:
         user_id = payload.get("userId")
         training_text = payload.get("trainingText")
@@ -28,7 +29,7 @@ def handle_set_response(payload: dict) -> dict:
 
         log_to_db(
             user_id=setting.user_id,
-            log_type="set_response",
+            log_type="set_training",
             detail=f"훈련 등록: '{setting.training_text}' → {setting.recognized_gesture}"
         )
 
@@ -45,7 +46,20 @@ def handle_set_response(payload: dict) -> dict:
     except Exception as e:
         return {"result": "fail", "reason": str(e)}
 
+def handle_get_training(payload: dict) -> dict:
+    try:
+        user_id = payload.get("userId")
+        if not user_id:
+            return {"result": "fail", "reason": "userId 누락"}
 
-def handle_get_response(payload: dict) -> dict:
-    # 현재 응답 정의 없음 (설정 조회 시 응답 형태 필요 시 구현)
-    return {"result": "fail", "reason": "미구현"}
+        settings = get_training_settings(user_id)
+        if not settings:
+            return {"result": "fail", "reason": "훈련 설정 없음"}
+
+        return {
+            "result": "success",
+            "trainingList": settings
+        }
+
+    except Exception as e:
+        return {"result": "fail", "reason": str(e)}

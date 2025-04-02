@@ -14,10 +14,6 @@ emotion_kor_map = {"angry": "짜증", "happy": "행복", "neutral": "무표정",
 # DeepFace 임베딩 추출에 사용할 모델명
 embedding_model_name = "ArcFace"
 
-# 한글 폰트 설정 (텍스트 출력을 위해 사용하지만, 여기서는 문자열만 반환하므로 직접 사용하지 않음)
-font_path = "/usr/share/fonts/truetype/nanum/NanumGothic.ttf"
-font = ImageFont.truetype(font_path, 32)
-
 # 감정 안정화 관련 변수 (여러 프레임에 걸친 결과 누적)
 previous_emotion = ""
 emotion_counter = 0

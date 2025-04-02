@@ -2,7 +2,7 @@ from interface.login import handle_signup, handle_login
 from interface.chat import handle_chat_message
 from interface.emotion import handle_emotion_analysis
 from interface.pet_character import handle_set_character, handle_get_character
-from interface.pet_training import handle_set_response, handle_get_response
+from interface.pet_training import handle_set_training, handle_get_training
 from interface.gesture import handle_gesture_event
 from interface.setting import handle_set_setting, handle_get_setting
 from interface.log import handle_log_write
@@ -29,10 +29,10 @@ def dispatch(message: dict):
     elif command == "get_character":
         return handle_get_character(payload)
 
-    elif command == "set_response":
-        return handle_set_response(payload)
-    elif command == "get_response":
-        return handle_get_response(payload)
+    elif command == "set_training":
+        return handle_set_training(payload)
+    elif command == "get_training":
+        return handle_get_training(payload)
 
     elif command == "gesture":
         return handle_gesture_event(payload)

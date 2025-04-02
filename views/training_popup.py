@@ -2,7 +2,7 @@ from PyQt5.QtWidgets import (
     QDialog, QLabel, QLineEdit, QTextEdit, QPushButton,
     QFileDialog, QVBoxLayout, QHBoxLayout, QMessageBox, QListWidget
 )
-from core.controller import handle_set_response_request, handle_get_response_request
+from core.controller import handle_set_training_request, handle_get_training_request
 from common.recorder import VideoRecorder
 
 class TrainingPopup(QDialog):
@@ -79,7 +79,7 @@ class TrainingPopup(QDialog):
             QMessageBox.warning(self, "입력 오류", "모든 항목을 입력해야 합니다.")
             return
 
-        response = handle_set_response_request(
+        response = handle_set_training_request(
             user_id=self.user_id,
             training_text=text,
             keyword_text=keyword,
@@ -97,7 +97,7 @@ class TrainingPopup(QDialog):
 
     def load_training_list(self):
         self.training_list.clear()
-        response = handle_get_response_request(self.user_id)
+        response = handle_get_training_request(self.user_id)
         if response.get("result") == "success":
             trainings = response.get("data", [])
             for t in trainings:

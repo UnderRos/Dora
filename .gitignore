@@ -7,6 +7,7 @@ __pycache__/
 
 *.gguf
 
+media/
 *.mp4
 *.wav
 
@@ -21,3 +22,5 @@ __pycache__/
 images/*
 !images/classification_report_bar.png
 !images/confusion_matrix.png
+
+dora_venv/
