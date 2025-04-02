@@ -1,48 +1,58 @@
-import sys
 import threading
-import time
 import cv2
-import numpy as np
-import joblib
+import json
+import socket
+from datetime import datetime
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTextBrowser, QPushButton,
-    QCheckBox, QMessageBox, QLabel
+    QCheckBox, QMessageBox, QLabel, QApplication
 )
-from PyQt5.QtCore import Qt, QUrl, QTimer, pyqtSignal
-from PyQt5.QtGui import QImage, QPixmap
-from core.controller import handle_chat_request
-from db.query import get_recent_chats
+from PyQt5.QtCore import Qt, QUrl, QTimer, pyqtSignal, pyqtSlot
+from PyQt5.QtGui import QImage, QPixmap, QTextCursor
+from db.query import get_recent_chats, insert_chat
 from ai.stt_wrapper import transcribe_audio
 from ai.tts_wrapper import speak_text_korean
 from common.recorder import LiveAudioRecorder
+from db.models import Chat
+from markdown2 import markdown
 
 from .webcam_emotion import analyze_emotion
 
 class ChatPanel(QWidget):
-    # 체크박스 상태 변경을 외부로 알리기 위한 시그널 (카메라, 마이크)
     expressionDetected = pyqtSignal(str)
     cameraToggled = pyqtSignal(bool)
     micToggled = pyqtSignal(bool)
+
+    doraMessageReceived = pyqtSignal(str, bool)
+
+    chatRefreshRequested = pyqtSignal()
 
     def __init__(self, user_id: int, user_name: str):
         super().__init__()
         self.user_id = user_id
         self.user_name = user_name
         self.recorder = None
+        self.conn = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.conn.connect(("127.0.0.1", 9000))
 
-        # 웹캠 관련 변수
         self.camera_capture = None
         self.camera_timer = QTimer(self)
         self.camera_timer.timeout.connect(self.update_camera_frame)
-        # 감정 분석 타이머 (예: 1초 간격)
         self.expression_timer = QTimer(self)
         self.expression_timer.timeout.connect(self.update_expression_result)
 
-        # 마이크 상태 변수 (True: 사용가능, False: 비활성)
         self.mic_enabled = False
+
+        self.last_block_cursor = None
+
+        self.dora_started = False
+        self.reply_accumulator = ""
 
         self.init_ui()
         self.load_chat_history()
+
+        self.doraMessageReceived.connect(self.append_dora_message)
+        self.chatRefreshRequested.connect(self.refresh_chat_display)
 
     def init_ui(self):
         layout = QVBoxLayout()
@@ -61,7 +71,6 @@ class ChatPanel(QWidget):
         send_button = QPushButton("전송")
         send_button.clicked.connect(self.send_chat_message)
 
-        # 토글 영역 - 카메라와 마이크 체크박스
         toggles = QHBoxLayout()
         self.camera_checkbox = QCheckBox("카메라 ON")
         self.camera_checkbox.toggled.connect(self.toggle_camera)
@@ -78,7 +87,6 @@ class ChatPanel(QWidget):
         layout.addWidget(self.chat_display)
         layout.addLayout(input_layout)
 
-        # 음성 제어 버튼 영역
         self.start_voice_btn = QPushButton("음성 입력 시작")
         self.stop_voice_btn = QPushButton("음성 입력 종료")
         self.stop_voice_btn.setEnabled(False)
@@ -89,11 +97,9 @@ class ChatPanel(QWidget):
         voice_btns.addWidget(self.stop_voice_btn)
         layout.addLayout(voice_btns)
 
-        # 초기에는 마이크가 꺼져 있으므로 음성 버튼 비활성화
         self.start_voice_btn.setEnabled(False)
         self.stop_voice_btn.setEnabled(False)
 
-        # 웹캠 영상을 표시할 QLabel (초기에는 숨김)
         self.camera_label = QLabel()
         self.camera_label.setFixedSize(320, 240)
         self.camera_label.setStyleSheet("background-color: black;")
@@ -101,6 +107,10 @@ class ChatPanel(QWidget):
         layout.addWidget(self.camera_label)
 
         self.setLayout(layout)
+
+    def refresh_chat_display(self):
+        self.chat_display.clear()
+        self.load_chat_history()
 
     def load_chat_history(self):
         history = get_recent_chats(self.user_id, limit=20)
@@ -111,21 +121,115 @@ class ChatPanel(QWidget):
             if user_msg:
                 self.chat_display.append(f"<b>{self.user_name}</b>: {user_msg}<br>")
             if dora_reply:
-                self.chat_display.append(
-                    f'<b><a href="{dora_reply}">DORA</a></b>: {dora_reply}<br><br>'
-                )
+                html = markdown(dora_reply).replace("\n", "<br>")
+                self.chat_display.append(f'<b><a href="{dora_reply}">DORA</a></b>:<br>{html}<br><br>')
 
     def send_chat_message(self):
-        text = self.chat_input.toPlainText().strip()
-        if not text:
+        user_input = self.chat_input.toPlainText().strip()
+        if not user_input:
             return
         self.chat_input.clear()
-        response = handle_chat_request(self.user_id, text)
-        if response.get("result") == "success":
-            self.chat_display.clear()
-            self.load_chat_history()
+        self.chat_display.append(f"<b>{self.user_name}</b>: {user_input}<br>")
+        self.last_user_message = user_input
+        self.partial_buffer = ""
+
+        message_data = {
+            "command": "send_message",
+            "payload": {
+                "userId": self.user_id,
+                "messageId": 0,
+                "message": user_input,
+                "timestamp": "",
+                "videoId": 0,
+                "videoPath": "",
+                "videoStartTimestamp": "",
+                "videoEndTimestamp": "",
+                "voiceId": 0,
+                "voicePath": "",
+                "voiceStartTimestamp": "",
+                "voiceEndTimestamp": ""
+            }
+        }
+
+        try:
+            self.conn.sendall(json.dumps(message_data).encode("utf-8"))
+        except Exception as e:
+            QMessageBox.critical(self, "전송 오류", f"서버에 메시지를 보낼 수 없습니다.\n{e}")
+            return
+
+        threading.Thread(target=self.handle_stream_response, daemon=True).start()
+
+    @pyqtSlot(str, bool)
+    def append_dora_message(self, content: str, partial: bool = True):
+        cursor = self.chat_display.textCursor()
+        cursor.movePosition(QTextCursor.End)
+
+        if partial:
+            if not self.dora_started:
+                self.chat_display.append("DORA: ")
+                self.dora_started = True
+
+            self.reply_accumulator += content
+            cursor.insertText(content)
+            self.chat_display.setTextCursor(cursor)
+
         else:
-            QMessageBox.warning(self, "전송 실패", "메시지 전송에 실패했습니다.")
+            self.dora_started = False
+            self.reply_accumulator = ""
+
+    def handle_stream_response(self):
+        buffer = ""
+
+        while True:
+            try:
+                data = self.conn.recv(4096)
+                if not data:
+                    break
+
+                buffer += data.decode("utf-8")
+
+                while "\n" in buffer:
+                    line, buffer = buffer.split("\n", 1)
+                    if not line.strip():
+                        continue
+
+                    msg = json.loads(line)
+
+                    if msg.get("type") == "stream_chunk":
+                        chunk = msg["chunk"]
+                        self.doraMessageReceived.emit(chunk, True)
+                        QApplication.processEvents()
+
+                    elif msg.get("type") == "stream_done":
+                        full_reply = self.reply_accumulator  # 저장된 전체 응답
+                        self.doraMessageReceived.emit(full_reply, False)
+
+                        chat = Chat(
+                            chat_id=None,
+                            user_id=self.user_id,
+                            message_id=None,
+                            message=self.last_user_message,
+                            timestamp=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+                            video_id=None, video_path=None,
+                            video_start_timestamp=None, video_end_timestamp=None,
+                            voice_id=None, voice_path=None,
+                            voice_start_timestamp=None, voice_end_timestamp=None,
+                            e_id=msg.get("eId", 5),
+                            pet_emotion=msg.get("petEmotion", "기분 좋아요"),
+                            reply_message=full_reply
+                        )
+                        insert_chat(chat)
+
+                        self.chatRefreshRequested.emit()
+
+                        return
+                    
+            except Exception as e:
+                print("[ChatPanel] stream 수신 오류:", e)
+                break
+
+
+
 
     def handle_enter_key(self, event):
         if event.key() in (Qt.Key_Return, Qt.Key_Enter) and not event.modifiers():
@@ -148,7 +252,8 @@ class ChatPanel(QWidget):
         try:
             wav_path = self.recorder.stop()
             text = transcribe_audio(wav_path)
-            self.chat_input.setText(text)
+            existing_text = self.chat_input.toPlainText()
+            self.chat_input.setText(existing_text + " " + text)
         except Exception as e:
             QMessageBox.critical(self, "STT 오류", f"음성 인식 실패: {e}")
         finally:
@@ -158,9 +263,7 @@ class ChatPanel(QWidget):
         text = url.toString()
         speak_text_korean(text)
 
-    # --- 웹캠 관련 메서드 ---
     def toggle_camera(self, checked: bool):
-        # 외부에 상태 전달
         self.cameraToggled.emit(checked)
         if checked:
             self.start_camera()
@@ -168,16 +271,13 @@ class ChatPanel(QWidget):
             self.stop_camera()
 
     def start_camera(self):
-        # 웹캠 열기
         self.camera_capture = cv2.VideoCapture(0)
         if not self.camera_capture.isOpened():
             QMessageBox.critical(self, "카메라 오류", "웹캠을 열 수 없습니다.")
             self.camera_checkbox.setChecked(False)
             return
         self.camera_label.setVisible(True)
-        # 타이머 시작 (예: 30ms 간격으로 프레임 업데이트)
         self.camera_timer.start(30)
-        # 감정 분석 타이머 시작 (예: 1초 간격)
         self.expression_timer.start(1000)
 
     def stop_camera(self):
@@ -193,7 +293,6 @@ class ChatPanel(QWidget):
         if self.camera_capture and self.camera_capture.isOpened():
             ret, frame = self.camera_capture.read()
             if ret:
-                # BGR -> RGB 변환
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 h, w, ch = rgb_frame.shape
                 bytes_per_line = ch * w
@@ -205,25 +304,19 @@ class ChatPanel(QWidget):
                 )
                 self.camera_label.setPixmap(pixmap)
 
-    # --- 감정 분석 메서드 ---
     def update_expression_result(self):
         if self.camera_capture and self.camera_capture.isOpened():
             ret, frame = self.camera_capture.read()
             if ret:
                 emotion_text = analyze_emotion(frame)
-                # 기존에는 self.chat_display.append(...)로 출력했으나, 대신 시그널로 내보냄
                 self.expressionDetected.emit(emotion_text)
-    
-    # --- 마이크 관련 메서드 ---
+
     def toggle_mic(self, checked: bool):
         self.mic_enabled = checked
-        # 외부에 상태 전달
         self.micToggled.emit(checked)
         if checked:
-            # 마이크가 켜지면 음성 입력 버튼 활성화
             self.start_voice_btn.setEnabled(True)
         else:
-            # 마이크가 꺼지면 음성 입력 버튼 비활성화 및 진행 중이면 중단
             self.start_voice_btn.setEnabled(False)
             self.stop_voice_btn.setEnabled(False)
             if self.recorder is not None:

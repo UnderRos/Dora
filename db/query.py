@@ -162,6 +162,25 @@ def insert_training_setting(setting: PetTrainingSetting) -> int:
     db.disconnect()
     return result_id
 
+def get_training_settings(user_id: int) -> list[dict]:
+    """
+    사용자의 훈련 명령어 목록을 조회
+    반환 형식: [{trainingText: ..., recognizedGesture: ...}, ...]
+    """
+    db = Database()
+    db.connect()
+    query = """
+        SELECT training_text, recognized_gesture
+        FROM PetTrainingSetting
+        WHERE user_id = %s
+        ORDER BY training_setting_id DESC
+    """
+    db.execute(query, (user_id,))
+    rows = db.fetchall()
+    db.disconnect()
+
+    return [{"trainingText": row["training_text"], "recognizedGesture": row["recognized_gesture"]} for row in rows]
+
 # ---------------------- UserSetting ----------------------
 
 def get_user_setting(user_id: int) -> dict:

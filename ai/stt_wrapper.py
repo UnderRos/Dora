@@ -1,7 +1,8 @@
+import time
 from whispercpp_kit import WhisperCPP
 
-whisper = WhisperCPP(model_name="large-v2")
-whisper.setup() # First-time setup (automatically done on first transcribe)
+_whisper = WhisperCPP(model_name="large-v2")
+_whisper.setup()
 
 def transcribe_audio(file_path: str) -> str:
     """
@@ -10,8 +11,28 @@ def transcribe_audio(file_path: str) -> str:
     :return: 텍스트 변환 결과
     """
     try:
-        result = whisper.transcribe(file_path, language="ko")
+        result = _whisper.transcribe(file_path, language="ko")
         return result.strip()
     except Exception as e:
         print(f"[STT] 변환 오류: {e}")
         return ""
+
+def transcribe_worker(audio_queue, callback):
+    """
+    실시간 음성 인식 스레드
+    """
+    while True:
+        if audio_queue:
+            file_path = audio_queue.pop(0)
+            try:
+                text = _whisper.transcribe(file_path, language="ko").strip()
+                if text:
+                    callback(text)
+            except Exception as e:
+                print(f"[STT] 오류: {e}")
+        else:
+            time.sleep(0.1)
+
+def get_whisper():
+    return _whisper
+

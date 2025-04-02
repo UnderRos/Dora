@@ -121,10 +121,10 @@ def handle_get_character_request(user_id: int):
     return response
 
 # 훈련 설정 요청을 처리하는 함수
-def handle_set_response_request(user_id: int, training_text: str, keyword_text: str,
+def handle_set_training_request(user_id: int, training_text: str, keyword_text: str,
                                 gesture_video_path: str, gesture_recognition_id: int, recognized_gesture: str):
     message_data = {
-        "command": "set_response",
+        "command": "set_training",
         "payload": {
             "userId": user_id,
             "trainingText": training_text,
@@ -138,13 +138,13 @@ def handle_set_response_request(user_id: int, training_text: str, keyword_text: 
     response = send_message_to_server(message_data)
     print("[Controller] 훈련 설정 응답:", response)
     if response.get("result") == "success":
-        log_to_db(user_id, "set_response", f"훈련 등록: {training_text} → {recognized_gesture}")
+        log_to_db(user_id, "set_training", f"훈련 등록: {training_text} → {recognized_gesture}")
     return response
 
 # 훈련 설정 조회 요청을 처리하는 함수
-def handle_get_response_request(user_id: int):
+def handle_get_training_request(user_id: int):
     message_data = {
-        "command": "get_response",
+        "command": "get_training",
         "payload": {
             "userId": user_id
         }
