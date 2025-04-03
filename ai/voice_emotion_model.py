@@ -8,7 +8,7 @@ emotion_labels = ['Angry', 'Anxious', 'Embarrassed', 'Happy', 'Hurt', 'Neutralit
 
 # 모델 경로 설정
 base_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(base_dir, 'models', 'voice_emotion_model.keras')
+model_path = os.path.join(base_dir, 'models', 'voice_emotion_model.h5')
 
 # 모델 로딩 (최초 1회만 로드됨)
 model = load_model(model_path)
