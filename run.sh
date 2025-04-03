@@ -59,14 +59,14 @@ fi
 
 echo "=== [2] 가상환경 생성 중... ==="
 
-if [ ! -d "./dora_venv" ]; then
-    python3 -m venv dora_venv
-    echo "가상환경 'dora_venv' 생성 완료"
+if [ ! -d "./dolbom_venv" ]; then
+    python3 -m venv dolbom_venv
+    echo "가상환경 'dolbom_venv' 생성 완료"
 else
-    echo "가상환경 'dora_venv' 이미 존재함"
+    echo "가상환경 'dolbom_venv' 이미 존재함"
 fi
 
-source dora_venv/bin/activate
+source dolbom_venv/bin/activate
 
 echo "=== 더 이상 사용되지 않는 이전 버전의 패키지 제거 중... ==="
 pip uninstall -y gpt4all
@@ -81,7 +81,7 @@ pip install -r requirements.txt
 echo ""
 echo "모든 설치가 완료되었습니다!"
 echo ""
-echo "  ▶ 가상환경 재진입:        source dora_venv/bin/activate"
+echo "  ▶ 가상환경 재진입:        source dolbom_venv/bin/activate"
 echo "  ▶ 가상환경 종료:          deactivate"
 echo ""
 echo "  ▶ 기본 실행:              python3 main.py"
@@ -98,6 +98,6 @@ if [[ "$run_now" == "y" || "$run_now" == "Y" || "$run_now" == "yes" || "$run_now
     python3 main.py
 else
     echo "실행을 건너뜁니다. 필요 시 다음 명령을 입력하세요:"
-    echo "   source dora_venv/bin/activate"
+    echo "   source dolbom_venv/bin/activate"
     echo "   python3 main.py"
 fi

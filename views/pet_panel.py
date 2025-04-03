@@ -65,7 +65,7 @@ class PetPanel(QWidget):
 
         response = handle_set_character_request(self.user_id, speech, character, res_setting)
         if response.get("result") == "success":
-            QMessageBox.information(self, "설정 저장", "DORA 설정이 저장되었습니다.")
+            QMessageBox.information(self, "설정 저장", "Dolbom 설정이 저장되었습니다.")
         else:
             QMessageBox.warning(self, "설정 실패", response.get("reason", "저장에 실패했습니다."))
 

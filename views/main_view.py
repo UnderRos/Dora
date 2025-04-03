@@ -18,7 +18,7 @@ class MainView(QWidget):
 
         # 탭에 패널 추가
         tabs.addTab(self.user_panel, "나의 상태")
-        tabs.addTab(self.pet_panel, "DORA 상태")
+        tabs.addTab(self.pet_panel, "Dolbom 상태")
         tabs.addTab(self.chat_panel, "채팅")
         tabs.addTab(self.setting_panel, "설정")
         layout.addWidget(tabs)
