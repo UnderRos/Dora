@@ -23,7 +23,7 @@ class ChatPanel(QWidget):
     cameraToggled = pyqtSignal(bool)
     micToggled = pyqtSignal(bool)
 
-    doraMessageReceived = pyqtSignal(str, bool)
+    dolbomMessageReceived = pyqtSignal(str, bool)
 
     chatRefreshRequested = pyqtSignal()
 
@@ -45,13 +45,13 @@ class ChatPanel(QWidget):
 
         self.last_block_cursor = None
 
-        self.dora_started = False
+        self.dolbom_started = False
         self.reply_accumulator = ""
 
         self.init_ui()
         self.load_chat_history()
 
-        self.doraMessageReceived.connect(self.append_dora_message)
+        self.dolbomMessageReceived.connect(self.append_dolbom_message)
         self.chatRefreshRequested.connect(self.refresh_chat_display)
 
     def init_ui(self):
@@ -117,12 +117,12 @@ class ChatPanel(QWidget):
         self.chat_display.clear()
         for chat in history:
             user_msg = chat.get("message", "")
-            dora_reply = chat.get("reply_message", "")
+            dolbom_reply = chat.get("reply_message", "")
             if user_msg:
                 self.chat_display.append(f"<b>{self.user_name}</b>: {user_msg}<br>")
-            if dora_reply:
-                html = markdown(dora_reply).replace("\n", "<br>")
-                self.chat_display.append(f'<b><a href="{dora_reply}">DORA</a></b>:<br>{html}<br><br>')
+            if dolbom_reply:
+                html = markdown(dolbom_reply).replace("\n", "<br>")
+                self.chat_display.append(f'<b><a href="{dolbom_reply}">Dolbom</a></b>:<br>{html}<br><br>')
 
     def send_chat_message(self):
         user_input = self.chat_input.toPlainText().strip()
@@ -160,21 +160,21 @@ class ChatPanel(QWidget):
         threading.Thread(target=self.handle_stream_response, daemon=True).start()
 
     @pyqtSlot(str, bool)
-    def append_dora_message(self, content: str, partial: bool = True):
+    def append_dolbom_message(self, content: str, partial: bool = True):
         cursor = self.chat_display.textCursor()
         cursor.movePosition(QTextCursor.End)
 
         if partial:
-            if not self.dora_started:
-                self.chat_display.append("DORA: ")
-                self.dora_started = True
+            if not self.dolbom_started:
+                self.chat_display.append("Dolbom: ")
+                self.dolbom_started = True
 
             self.reply_accumulator += content
             cursor.insertText(content)
             self.chat_display.setTextCursor(cursor)
 
         else:
-            self.dora_started = False
+            self.dolbom_started = False
             self.reply_accumulator = ""
 
     def handle_stream_response(self):
@@ -197,12 +197,12 @@ class ChatPanel(QWidget):
 
                     if msg.get("type") == "stream_chunk":
                         chunk = msg["chunk"]
-                        self.doraMessageReceived.emit(chunk, True)
+                        self.dolbomMessageReceived.emit(chunk, True)
                         QApplication.processEvents()
 
                     elif msg.get("type") == "stream_done":
                         full_reply = self.reply_accumulator  # 저장된 전체 응답
-                        self.doraMessageReceived.emit(full_reply, False)
+                        self.dolbomMessageReceived.emit(full_reply, False)
 
                         chat = Chat(
                             chat_id=None,

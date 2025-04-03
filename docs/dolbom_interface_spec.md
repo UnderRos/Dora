@@ -401,7 +401,7 @@
 ## 3. 디렉토리 및 파일 구조
 
 ```plaintext
-dora_project_root
+dolbom_project_root
 ├── README.md
 ├── ai
 │   ├── emotion_analyzer.py                   # 감정 분석 모델 로드 및 예측
@@ -447,14 +447,14 @@ dora_project_root
 │   └── socket_client.py                  # TCP/UDP 통신 클라이언트
 ├── db                               # DB 연결 및 ORM/Query 처
 │   ├── connection.py                 # MySQL 연결 관리
-│   ├── dora.sql
+│   ├── dolbom.sql
 │   ├── models.py                     # 테이블 모델 클래스
 │   ├── query.py                      # 기능별 쿼리 모듈 분리
 │   ├── seed.py                       # 더미 파일
 │   └── utils.py
 ├── docs
 │   ├── dolbom_interface_spec.md
-│   ├── dora-db-erd.png
+│   ├── dolbom-db-erd.png
 │   ├── faq.md
 │   ├── setup.md
 │   ├── soouhperbad.md
