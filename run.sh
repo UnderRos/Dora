@@ -20,12 +20,17 @@ if [ "$OS" == "Linux" ]; then
     if [[ "$DISTRO" == "ubuntu" || "$DISTRO" == "debian" ]]; then
         echo "Setting up for Ubuntu/Debian..."
         sudo apt update
+        sudo apt install software-properties-common -y
+        sudo add-apt-repository ppa:deadsnakes/ppa -y
+        sudo apt update
+        sudo apt install python3.10 python3.10-venv python3.10-dev -y
         sudo apt-get install -y ffmpeg build-essential
         sudo apt-get install -y portaudio19-dev libasound-dev
         sudo apt-get install -y libxcb-xinerama0 libxcb1 libxcb-util1 libx11-xcb1 libxrender1 libxi6 libxext6
         sudo apt-get install -y python3-gi python3-gi-cairo gir1.2-gtk-4.0
         sudo apt-get install -y libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev python3-venv
         sudo apt-get install fonts-nanum
+
 
     elif [[ "$DISTRO" == "arch" || "$DISTRO" == "manjaro" ]]; then
         echo "Setting up for Arch/Manjaro..."
@@ -38,6 +43,13 @@ if [ "$OS" == "Linux" ]; then
         sudo yum install -y epel-release
         sudo yum groupinstall -y "Development Tools"
         sudo yum install -y ffmpeg gcc-c++ make portaudio-devel alsa-lib-devel cairo-devel pkgconfig python3-devel python3-venv gobject-introspection-devel gtk4
+        sudo dnf install gcc openssl-devel bzip2-devel libffi-devel
+        cd /usr/src
+        sudo curl -O https://www.python.org/ftp/python/3.10.13/Python-3.10.13.tgz
+        sudo tar xzf Python-3.10.13.tgz
+        cd Python-3.10.13
+        sudo ./configure --enable-optimizations
+        sudo make altinstall  # python3.10 명령어 생김
 
     else
         echo "Unsupported Linux distro: $DISTRO"
@@ -50,7 +62,9 @@ elif [ "$OS" == "Darwin" ]; then
         echo "Homebrew not found. Installing Homebrew..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
     fi
-    brew install ffmpeg portaudio cairo pkg-config python gobject-introspection gtk4
+    brew install ffmpeg portaudio cairo pkg-config python gobject-introspection gtk4 python@3.10
+    echo 'export PATH="/opt/homebrew/opt/python@3.10/bin:$PATH"' >> ~/.zshrc
+    source ~/.zshrc
 
 else
     echo "Unsupported OS: $OS"
@@ -67,7 +81,7 @@ conda deactivate || true
 
 echo "=== 가상환경 생성... ==="
 if [ ! -d "./dolbom_venv" ]; then
-    python3 -m venv dolbom_venv
+    python3.10 -m venv dolbom_venv
     echo "가상환경 'dolbom_venv' 생성 완료"
 else
     echo "가상환경 'dolbom_venv' 이미 존재함"
