@@ -11,7 +11,7 @@ try:
     text_model = joblib.load(os.path.join(MODEL_DIR, 'text_emotion_model.h5'))
 
     # 음성 감정 분석 모델 로드
-    voice_model = load_model(os.path.join(MODEL_DIR, 'voice_emotion_model.h5'))
+    voice_model = load_model(os.path.join(MODEL_DIR, 'voice_emotion_model.keras'))
 
     # 얼굴 감정 분석 모델 로드
     face_model = load_model(os.path.join(MODEL_DIR, 'face_emotion_model.h5'))
