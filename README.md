@@ -1,7 +1,14 @@
-# DORA
-> 사용자 감정 분석 기반 정서 케어 챗봇  
-> 표정/음성 인식, 자연어 처리, 일정 관리까지 GUI 통합 제공  
-> PyQt5 기반 데스크탑 앱 + 딥러닝 기반 감정 분석 + KoBERT 의도 분석
+# StoneSpring
+
+> ***“당신의 감정을 이해해주는 누군가가 있다면 어떨까요?”***
+돌봄(StoneSpring)은 감정을 말하지 않아도 알아채는 AI 돌봄 친구 Dolbom과의 대화를 통해  
+당신의 하루를 더 따뜻하게 만들어드립니다.
+
+<div style="text-align: right">Team: 낭만(浪漫; NangMan)</div>
+
+- 사용자 감정 분석 기반 정서 케어 챗봇  
+- 표정/음성 인식, 자연어 처리, 일정 관리까지 GUI 통합 제공  
+- PyQt5 기반 데스크탑 앱 + 딥러닝 기반 감정 분석 + KoBERT 의도 분석
 
 ---
 
@@ -130,10 +137,6 @@
 
 ## 설치 및 실행 방법
 
-```bash
-# 의존성 설치
-pip install -r requirements.txt
-
-# 실행
-python main.py
+```shell
+bash run.sh
 ```
