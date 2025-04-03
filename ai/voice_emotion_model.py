@@ -29,13 +29,14 @@ with custom_object_scope({
     model = load_model(model_path, compile=False)
 
 # MFCC 전처리 함수
-def extract_mfcc(audio_np, sr=16000, max_pad_len=128):
-    mfcc = librosa.feature.mfcc(y=audio_np.astype(np.float32), sr=sr, n_mfcc=40)
+def extract_mfcc(audio_np, sr=16000, max_pad_len=157):
+    mfcc = librosa.feature.mfcc(y=audio_np.astype(np.float32), sr=sr, n_mfcc=13)  # ✅ 13으로 변경
     if mfcc.shape[1] < max_pad_len:
         mfcc = np.pad(mfcc, ((0, 0), (0, max_pad_len - mfcc.shape[1])), mode='constant')
     else:
         mfcc = mfcc[:, :max_pad_len]
-    return mfcc.T[np.newaxis, :, :]  # (1, 128, 40)
+    mfcc = mfcc.T  # (157, 13)
+    return mfcc[np.newaxis, ..., np.newaxis]  # ✅ (1, 157, 13, 1)
 
 # 감정 예측 함수
 def predict_emotion(audio_np, sr=16000):

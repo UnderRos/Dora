@@ -16,6 +16,7 @@ class LiveAudioRecorder:
         self.save_dir = AUDIO_CONFIG["save_dir"]
         self.callback = callback
         self.whisper = get_whisper()
+        self.last_audio_data = None  # ✅ 수정: 마지막 버퍼 저장용 추가
 
     def _record_loop(self):
         p = pyaudio.PyAudio()
@@ -36,6 +37,8 @@ class LiveAudioRecorder:
                 frames.append(data)
 
             audio_data = b"".join(frames)
+            self.last_audio_data = audio_data  # ✅ 수정: stop에서 사용하기 위해 저장
+
             temp_path = os.path.join(self.save_dir, "__temp_chunk.wav")
             self._save_chunk(temp_path, audio_data, p)
 
@@ -69,7 +72,19 @@ class LiveAudioRecorder:
         self.running = False
         self.thread.join()
 
+        # ✅ 수정: 마지막 오디오 버퍼가 있다면 저장 후 경로 반환
+        if self.last_audio_data is not None:
+            final_path = generate_filename("audio", "wav", self.save_dir)
+            try:
+                self._save_chunk(final_path, self.last_audio_data, pyaudio.PyAudio())
+                return final_path  # ✅ 수정: GUI에서 사용할 최종 녹음 파일 경로 반환
+            except Exception as e:
+                print(f"[녹음 저장 실패] {e}")
+        else:
+            print("[녹음 실패] last_audio_data가 없습니다.")
+        return None  # 실패 시 None 반환
 
+# 기존 VideoRecorder, generate_filename은 그대로 유지
 class VideoRecorder:
     def __init__(self, fps=30):
         self.fps = fps
