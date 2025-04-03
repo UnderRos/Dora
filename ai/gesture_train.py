@@ -126,7 +126,11 @@ def collect_and_train(gesture_name, data_path, model_path, secs_for_action=15):
         json.dump(actions, f)
 
 if __name__ == "__main__":
-    gesture_name = input("학습할 제스처 이름을 입력하세요: ")
+    import sys
+    if len(sys.argv) > 1:
+        gesture_name = sys.argv[1]
+    else:
+        gesture_name = input("학습할 제스처 이름을 입력하세요: ")
     data_path = './ai/training/data'
     model_path = './ai/models/gesture_model.h5'
     collect_and_train(gesture_name, data_path, model_path)
