@@ -57,8 +57,15 @@ else
     exit 1
 fi
 
+
+
 echo "=== [2] 가상환경 생성 중... ==="
 
+echo "=== 실행 중인 가상환경 비활성화 하기... ==="
+deactivate || true
+conda deactivate || true
+
+echo "=== 가상환경 생성... ==="
 if [ ! -d "./dolbom_venv" ]; then
     python3 -m venv dolbom_venv
     echo "가상환경 'dolbom_venv' 생성 완료"
@@ -69,6 +76,7 @@ fi
 source dolbom_venv/bin/activate
 
 echo "=== 더 이상 사용되지 않는 이전 버전의 패키지 제거 중... ==="
+rm -rf dora_venv
 pip uninstall -y gpt4all
 
 echo "=== [3] 기존 충돌 패키지 제거 중... ==="
