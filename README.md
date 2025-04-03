@@ -137,10 +137,6 @@
 
 ## 설치 및 실행 방법
 
-```bash
-# 의존성 설치
-pip install -r requirements.txt
-
-# 실행
-python main.py
+```shell
+bash run.sh
 ```
