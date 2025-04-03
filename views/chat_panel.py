@@ -15,8 +15,10 @@ from ai.tts_wrapper import speak_text_korean
 from common.recorder import LiveAudioRecorder
 from db.models import Chat
 from markdown2 import markdown
-from .webcam_emotion import analyze_emotion
 import subprocess
+from interface.emotion import analyze_emotion as analyze_webcam_emotion
+from interface.camera_manager import CameraManager
+
 
 class ChatPanel(QWidget):
     expressionDetected = pyqtSignal(str)
@@ -39,18 +41,15 @@ class ChatPanel(QWidget):
             QMessageBox.critical(self, "서버 연결 오류", f"서버에 연결할 수 없습니다:\n{e}")
             return
 
-        self.camera_capture = None
-        self.camera_timer = QTimer(self)
-        self.camera_timer.timeout.connect(self.update_camera_frame)
-        self.expression_timer = QTimer(self)
-        self.expression_timer.timeout.connect(self.update_expression_result)
-
+        self.camera_manager = None  # 공유 카메라 관리자 인스턴스
         self.mic_enabled = False
         self.gesture_process = None  # gesture_recognize.py 프로세스 핸들
 
         self.last_block_cursor = None
         self.dolbom_started = False
         self.reply_accumulator = ""
+        # 감정 업데이트 간격을 위한 타이머 변수 (초 단위)
+        self.last_emotion_update = 0
 
         self.init_ui()
         self.load_chat_history()
@@ -80,7 +79,7 @@ class ChatPanel(QWidget):
         self.camera_checkbox.toggled.connect(self.toggle_camera)
         self.mic_checkbox = QCheckBox("마이크 ON")
         self.mic_checkbox.toggled.connect(self.toggle_mic)
-        self.gesture_checkbox = QCheckBox("제스처 ON")  # 새로 추가
+        self.gesture_checkbox = QCheckBox("제스처 ON")
         self.gesture_checkbox.toggled.connect(self.toggle_gesture)
         toggles.addWidget(self.camera_checkbox)
         toggles.addWidget(self.mic_checkbox)
@@ -104,6 +103,7 @@ class ChatPanel(QWidget):
         voice_btns.addWidget(self.stop_voice_btn)
         layout.addLayout(voice_btns)
 
+        # 초기에는 음성 버튼 비활성화
         self.start_voice_btn.setEnabled(False)
         self.stop_voice_btn.setEnabled(False)
 
@@ -118,14 +118,12 @@ class ChatPanel(QWidget):
     def toggle_gesture(self, checked: bool):
         self.gestureToggled.emit(checked)
         if checked:
-            # gesture_recognize.py를 실행하여 실시간 제스처 인식 시작
             try:
                 self.gesture_process = subprocess.Popen(["python", "./ai/gesture_recognize.py"])
                 print("제스처 인식 프로세스 시작됨")
             except Exception as e:
                 QMessageBox.critical(self, "제스처 인식 오류", f"제스처 인식 스크립트 실행 중 오류 발생:\n{str(e)}")
         else:
-            # 실행 중인 gesture_recognize.py 프로세스 종료
             if self.gesture_process is not None:
                 self.gesture_process.terminate()
                 self.gesture_process = None
@@ -192,16 +190,13 @@ class ChatPanel(QWidget):
     def append_dolbom_message(self, content: str, partial: bool = True):
         cursor = self.chat_display.textCursor()
         cursor.movePosition(QTextCursor.End)
-
         if partial:
             if not self.dolbom_started:
                 self.chat_display.append("Dolbom: ")
                 self.dolbom_started = True
-
             self.reply_accumulator += content
             cursor.insertText(content)
             self.chat_display.setTextCursor(cursor)
-
         else:
             self.dolbom_started = False
             self.reply_accumulator = ""
@@ -234,7 +229,7 @@ class ChatPanel(QWidget):
                             video_id=None, video_path=None,
                             video_start_timestamp=None, video_end_timestamp=None,
                             voice_id=None, voice_path=None,
-                            voice_start_timestamp=None, voice_end_timestamp=None,
+                            voiceStartTimestamp=None, voiceEndTimestamp=None,
                             e_id=msg.get("eId", 5),
                             pet_emotion=msg.get("petEmotion", "기분 좋아요"),
                             reply_message=full_reply
@@ -278,70 +273,42 @@ class ChatPanel(QWidget):
         text = url.toString()
         speak_text_korean(text)
 
-    def toggle_camera(self, checked: bool):
-        self.cameraToggled.emit(checked)
-        if checked:
-            self.start_camera()
-        else:
-            self.stop_camera()
-
     def start_camera(self):
-        self.camera_capture = cv2.VideoCapture(0)
-        if not self.camera_capture.isOpened():
-            QMessageBox.critical(self, "카메라 오류", "웹캠을 열 수 없습니다.")
+        try:
+            self.camera_manager = CameraManager.instance()  # 공유 카메라 인스턴스 사용
+        except RuntimeError as e:
+            QMessageBox.critical(self, "카메라 오류", str(e))
             self.camera_checkbox.setChecked(False)
             return
         self.camera_label.setVisible(True)
-        self.camera_timer.start(30)
-        self.expression_timer.start(1000)
+        # 프레임 업데이트 콜백 등록
+        self.camera_manager.add_frame_callback(self.update_camera_frame)
+        self.camera_manager.start()
 
     def stop_camera(self):
-        self.camera_timer.stop()
-        self.expression_timer.stop()
-        if self.camera_capture:
-            self.camera_capture.release()
-            self.camera_capture = None
+        if self.camera_manager is not None:
+            self.camera_manager.remove_frame_callback(self.update_camera_frame)
         self.camera_label.clear()
         self.camera_label.setVisible(False)
 
-    def update_camera_frame(self):
-        if self.camera_capture and self.camera_capture.isOpened():
-            ret, frame = self.camera_capture.read()
-            if ret:
-                rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgb_frame.shape
-                bytes_per_line = ch * w
-                qt_image = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
-                pixmap = QPixmap.fromImage(qt_image).scaled(
-                    self.camera_label.width(), self.camera_label.height(), Qt.KeepAspectRatio
-                )
-                self.camera_label.setPixmap(pixmap)
-
-    def update_expression_result(self):
-        if self.camera_capture and self.camera_capture.isOpened():
-            ret, frame = self.camera_capture.read()
-            if ret:
-                emotion_text = analyze_emotion(frame)
-                self.expressionDetected.emit(emotion_text)
-
-    def toggle_mic(self, checked: bool):
-        self.mic_enabled = checked
-        self.micToggled.emit(checked)
-        if checked:
-            self.start_voice_btn.setEnabled(True)
-        else:
-            self.start_voice_btn.setEnabled(False)
-            self.stop_voice_btn.setEnabled(False)
-            if self.recorder is not None:
-                try:
-                    self.recorder.stop()
-                except Exception as e:
-                    print("녹음 중지 오류:", e)
-                self.recorder = None
+    def update_camera_frame(self, frame):
+        if frame is not None:
+            rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+            h, w, ch = rgb_frame.shape
+            bytes_per_line = ch * w
+            qt_image = QImage(rgb_frame.data, w, h, bytes_per_line, QImage.Format_RGB888)
+            pixmap = QPixmap.fromImage(qt_image).scaled(
+                self.camera_label.width(), self.camera_label.height(), Qt.KeepAspectRatio
+            )
+            self.camera_label.setPixmap(pixmap)
+            # 1초마다 감정 분석 수행
+            current_time = datetime.now().timestamp()
+            if current_time - self.last_emotion_update >= 1:
+                summary = analyze_webcam_emotion(frame)
+                self.expressionDetected.emit(summary)
+                self.last_emotion_update = current_time
 
     def load_chat_history(self):
-        # 예시: 최근 채팅 기록을 DB에서 불러와 채팅창에 표시하는 코드
-        from db.query import get_recent_chats
         history = get_recent_chats(self.user_id, limit=20)
         self.chat_display.clear()
         for chat in history:
@@ -350,17 +317,15 @@ class ChatPanel(QWidget):
             if user_msg:
                 self.chat_display.append(f"<b>{self.user_name}</b>: {user_msg}<br>")
             if dolbom_reply:
-                # markdown 처리를 적용하여 포맷팅 (필요 시)
-                from markdown2 import markdown
                 html = markdown(dolbom_reply).replace("\n", "<br>")
                 self.chat_display.append(f'<b><a href="{dolbom_reply}">Dolbom</a></b>:<br>{html}<br><br>')
-    
+
     def refresh_chat_display(self):
         self.chat_display.clear()
         self.load_chat_history()
 
+
 if __name__ == "__main__":
-    from PyQt5.QtWidgets import QApplication
     import sys
     app = QApplication(sys.argv)
     panel = ChatPanel(user_id=1, user_name="User1")
