@@ -25,6 +25,7 @@ if [ "$OS" == "Linux" ]; then
         sudo apt-get install -y libxcb-xinerama0 libxcb1 libxcb-util1 libx11-xcb1 libxrender1 libxi6 libxext6
         sudo apt-get install -y python3-gi python3-gi-cairo gir1.2-gtk-4.0
         sudo apt-get install -y libgirepository-2.0-dev gcc libcairo2-dev pkg-config python3-dev python3-venv
+        sudo apt-get install fonts-nanum
 
     elif [[ "$DISTRO" == "arch" || "$DISTRO" == "manjaro" ]]; then
         echo "Setting up for Arch/Manjaro..."
