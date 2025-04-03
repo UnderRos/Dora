@@ -19,3 +19,4 @@ deepface
 tf-keras
 scikit-learn
 markdown2
+mediapipe
