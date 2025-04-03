@@ -1,19 +1,34 @@
 import numpy as np
 import librosa
-from tensorflow.keras.models import load_model
 import os
+from tensorflow.keras.models import load_model
+from tensorflow.keras.layers import InputLayer
+from tensorflow.keras.mixed_precision import Policy
+from tensorflow.keras.utils import custom_object_scope
 
 # 감정 라벨 정의
 emotion_labels = ['Angry', 'Anxious', 'Embarrassed', 'Happy', 'Hurt', 'Neutrality', 'Sad', 'Neutrality']
 
-# 모델 경로 설정 (⚠️ rebuilt 버전 사용!)
+# 모델 경로 설정
 base_dir = os.path.dirname(os.path.abspath(__file__))
-model_path = os.path.join(base_dir, 'models', 'voice_emotion_model_rebuilt.h5')
+model_path = os.path.join(base_dir, 'models', 'voice_emotion_model.h5')
+
+# 커스텀 InputLayer 클래스
+class PatchedInputLayer(InputLayer):
+    @classmethod
+    def from_config(cls, config):
+        if "batch_shape" in config:
+            config["batch_input_shape"] = config.pop("batch_shape")
+        return super().from_config(config)
 
 # 모델 로딩
-model = load_model(model_path)
+with custom_object_scope({
+    "InputLayer": PatchedInputLayer,
+    "DTypePolicy": Policy
+}):
+    model = load_model(model_path, compile=False)
 
-# MFCC 추출 함수
+# MFCC 전처리 함수
 def extract_mfcc(audio_np, sr=16000, max_pad_len=128):
     mfcc = librosa.feature.mfcc(y=audio_np.astype(np.float32), sr=sr, n_mfcc=40)
     if mfcc.shape[1] < max_pad_len:
