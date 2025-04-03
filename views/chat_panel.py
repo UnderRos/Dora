@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
 from PyQt5.QtCore import Qt, QUrl, QTimer, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap, QTextCursor
 from db.query import get_recent_chats, insert_chat
-from ai.stt_wrapper import transcribe_audio
+# from ai.stt_wrapper import transcribe_audio  # STT 임시 비활성화
 from ai.tts_wrapper import speak_text_korean
 from common.recorder import LiveAudioRecorder
 from db.models import Chat
@@ -262,18 +262,19 @@ class ChatPanel(QWidget):
         try:
             wav_path = self.recorder.stop()
             self.recorder = None
-            text = transcribe_audio(wav_path)
-            existing_text = self.chat_input.toPlainText()
-            self.chat_input.setText(existing_text + " " + text)
+            # text = transcribe_audio(wav_path)  # STT 임시 비활성화
+            # existing_text = self.chat_input.toPlainText()
+            # self.chat_input.setText(existing_text + " " + text)
 
             audio_np, sr = librosa.load(wav_path, sr=16000)
             emotion, conf = predict_emotion(audio_np)
+            print(f"[음성 감정 분석 결과] 감정: {emotion}, 신뢰도: {conf:.4f}")
             if not np.isnan(conf):
                 self.chat_display.append(f"<span style='color:gray;'>[감정 분석] {emotion} ({conf*100:.1f}%)</span>")
             else:
                 self.chat_display.append("<span style='color:gray;'>[감정 분석 실패]</span>")
         except Exception as e:
-            QMessageBox.critical(self, "STT 오류", f"음성 인식 실패: {e}")
+            QMessageBox.critical(self, "감정 분석 오류", f"음성 감정 분석 실패: {e}")
         finally:
             self.start_voice_btn.setEnabled(True)
 
