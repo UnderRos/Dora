@@ -23,4 +23,4 @@ images/*
 !images/classification_report_bar.png
 !images/confusion_matrix.png
 
-dora_venv/
+dolbom_venv/
