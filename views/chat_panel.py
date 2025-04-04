@@ -5,9 +5,9 @@ import socket
 from datetime import datetime
 from PyQt5.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QTextEdit, QTextBrowser, QPushButton,
-    QCheckBox, QMessageBox, QLabel, QApplication, QListWidget, QListWidgetItem
+    QCheckBox, QMessageBox, QLabel, QApplication
 )
-from PyQt5.QtCore import Qt, QUrl, QTimer, pyqtSignal, pyqtSlot
+from PyQt5.QtCore import Qt, QUrl, pyqtSignal, pyqtSlot
 from PyQt5.QtGui import QImage, QPixmap, QTextCursor
 from db.query import get_recent_chats, insert_chat
 # from ai.stt_wrapper import transcribe_audio  # STT 임시 비활성화
@@ -21,6 +21,7 @@ from interface.camera_manager import CameraManager
 import librosa
 import numpy as np
 from ai.voice_emotion_model import predict_emotion
+
 
 class ChatPanel(QWidget):
     expressionDetected = pyqtSignal(str)
@@ -120,14 +121,12 @@ class ChatPanel(QWidget):
         if checked:
             try:
                 self.gesture_process = subprocess.Popen(["python", "./ai/gesture_recognize.py"])
-                print("제스처 인식 프로세스 시작됨")
             except Exception as e:
-                QMessageBox.critical(self, "제스처 인식 오류", f"제스처 인식 스크립트 실행 중 오류 발생:\n{str(e)}")
+                QMessageBox.critical(self, "제스처 인식 오류", f"제스처 인식 실행 실패:\n{str(e)}")
         else:
             if self.gesture_process is not None:
                 self.gesture_process.terminate()
                 self.gesture_process = None
-                print("제스처 인식 프로세스 종료됨")
 
     def toggle_camera(self, checked: bool):
         self.cameraToggled.emit(checked)
@@ -139,10 +138,8 @@ class ChatPanel(QWidget):
     def toggle_mic(self, checked: bool):
         self.mic_enabled = checked
         self.micToggled.emit(checked)
-        if checked:
-            self.start_voice_btn.setEnabled(True)
-        else:
-            self.start_voice_btn.setEnabled(False)
+        self.start_voice_btn.setEnabled(checked)
+        if not checked:
             self.stop_voice_btn.setEnabled(False)
             if self.recorder is not None:
                 try:
@@ -181,7 +178,7 @@ class ChatPanel(QWidget):
         try:
             self.conn.sendall(json.dumps(message_data).encode("utf-8"))
         except Exception as e:
-            QMessageBox.critical(self, "전송 오류", f"서버에 메시지를 보낼 수 없습니다.\n{e}")
+            QMessageBox.critical(self, "전송 오류", f"서버에 메시지를 보낼 수 없습니다:\n{e}")
             return
 
         threading.Thread(target=self.handle_stream_response, daemon=True).start()
@@ -262,6 +259,7 @@ class ChatPanel(QWidget):
         try:
             wav_path = self.recorder.stop()
             self.recorder = None
+
             # text = transcribe_audio(wav_path)  # STT 임시 비활성화
             # existing_text = self.chat_input.toPlainText()
             # self.chat_input.setText(existing_text + " " + text)
@@ -330,6 +328,7 @@ class ChatPanel(QWidget):
     def refresh_chat_display(self):
         self.chat_display.clear()
         self.load_chat_history()
+
 
 if __name__ == "__main__":
     import sys
