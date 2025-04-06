@@ -12,18 +12,13 @@ media/
 *.wav
 
 *.csv
-
+*.tex
 *.jpg
 *.jpeg
 *.png
 
 *.npy
 
-<<<<<<< HEAD
-*.zip
-
-=======
->>>>>>> 361deb14b20b264c3bf072ae366a0f04b009852b
 images/*
 !images/classification_report_bar.png
 !images/confusion_matrix.png
