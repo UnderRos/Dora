@@ -122,7 +122,15 @@
   - 대용량 이미지 배치 처리 + 중간 저장 기능 탑재 (`.npy` 저장으로 중단 복구 가능)
   - 학습 모델 및 결과:
     - `./results/mlp_model.pkl`: 학습 완료된 모델 파일
-      
+
+---
+## 🧠 음성 감정 분석 모대델
+### 사용된 기술
+- 프레임 기반 음성 특성: MFCC
+- 딥러닝 프레임워크: TensorFlow / Keras
+- 최적화 함수: Adam
+- 평가지표: 
+- ![Image](https://github.com/user-attachments/assets/3d0df76b-536a-4425-a895-44a7dcf43515)
 ---
 
 ## 참고 서비스
