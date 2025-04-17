@@ -129,8 +129,10 @@
 - 프레임 기반 음성 특성: MFCC
 - 딥러닝 프레임워크: TensorFlow / Keras
 - 최적화 함수: Adam
-- 평가지표: 
-- ![Image](https://github.com/user-attachments/assets/3d0df76b-536a-4425-a895-44a7dcf43515)
+- 평가지표:
+- Test Accuracy Epoch 30
+  - <img src="https://github.com/user-attachments/assets/3d0df76b-536a-4425-a895-44a7dcf43515" alt="Training Accuracy" width="600"/>
+  - 현재 저장된 모델은 epoch 230에 조기 종료된 Accuracy 96% 모델로 voice_emotion_model.keras or voice_emotion_model.h5 
 ---
 
 ## 참고 서비스
